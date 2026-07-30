@@ -255,11 +255,13 @@ They have different owners, change cadences, and blast radii. See
 **M-3 — One central remote-window factory.** `remote-window-factory.ts` is the only place a remote
 window is constructed and the only place `webPreferences` is written — the hardened baseline is a
 frozen constant **inside that file**, not a separate module, since the lint rule forbids the
-identifier everywhere else. It exports `createRemoteWindow(initialUrl): BrowserWindow` and
-`createRemotePopup(url, parent): BrowserWindow`, attaching all navigation, permission, device,
-display-media, and download handlers in one place. Enforced by ESLint `no-restricted-syntax`
-forbidding `new BrowserWindow(`, `new WebContentsView(`, `new BrowserView(`, and the `webPreferences`
-identifier elsewhere.
+identifier everywhere else. It exports `createRemoteWindow(initialUrl): BrowserWindow`,
+`hardenedPopupOptions()`, and `attachRemoteHandlers(win)`. **Popups are constructed by Electron, not
+by the factory** — `setWindowOpenHandler` returns
+`{action:'allow', overrideBrowserWindowOptions: hardenedPopupOptions()}` and `did-create-window` then
+calls `attachRemoteHandlers`, so the main window and every popup harden through the same code path.
+Enforced by ESLint `no-restricted-syntax` forbidding `new BrowserWindow(`, `new WebContentsView(`,
+`new BrowserView(`, and the `webPreferences` identifier outside the factory and `tests/**`.
 
 **M-4 — Automated security assertions.** `tests/integration/security-baseline.test.ts` asserts, for
 every remote window and popup: `sandbox`, `contextIsolation`, `webSecurity` true;

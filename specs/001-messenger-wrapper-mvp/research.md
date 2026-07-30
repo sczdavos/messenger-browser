@@ -111,7 +111,7 @@ own security guide — therefore has gaps. The design uses:
 | 1 | `setWindowOpenHandler` | `window.open`, `target="_blank"`, popups |
 | 2 | `will-navigate` | renderer-initiated main-frame navigation |
 | 3 | `will-redirect` | **every** redirect hop, regardless of initiator |
-| 4 | `session.webRequest.onBeforeRequest` filtered to `resourceTypes: ['mainFrame']` | backstop for browser-initiated main-frame loads that layer 2 misses |
+| 4 | `session.webRequest.onBeforeRequest` with filter `{ urls: ['<all_urls>'], types: ['mainFrame'] }` | backstop for browser-initiated main-frame loads that layer 2 misses |
 
 Layer 3 is what satisfies the constitution's per-hop rule and closes the `login.php?next=` bypass.
 Layer 4 is the belt-and-braces net for the gap the source code documents.
@@ -121,9 +121,14 @@ allowlist to top-level document navigation, and blocking subframes would break e
 site legitimately uses. Subframe isolation is left to Chromium (`webSecurity: true`, site isolation).
 A subframe cannot navigate the top-level document without passing layer 2 or 3.
 
-**Critical implementation constraint**: layer 4 must filter on `resourceTypes: ['mainFrame']` only.
-Filtering more broadly would block the subresources that FR-010 requires be left alone, breaking page
-rendering.
+**Critical implementation constraint**: the `WebRequestFilter` structure has exactly three fields —
+`urls` (**required**), `excludeUrls`, and **`types`**. The resource-type key is `types`, *not*
+`resourceTypes`, and `urls` cannot be omitted. Electron silently ignores an unrecognized filter key,
+so writing `resourceTypes` causes the listener to fire for every request; `decide()` then routes
+every `fbcdn.net` asset to `open-external`, cancelling it and spawning the default browser once per
+subresource. The listener MUST also check `details.resourceType === 'mainFrame'` as its first
+statement, as defence in depth. Filtering more broadly blocks the subresources FR-010 requires be
+left alone.
 
 ---
 

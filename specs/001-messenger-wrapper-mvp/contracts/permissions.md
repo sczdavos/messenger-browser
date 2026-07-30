@@ -23,14 +23,53 @@ export function evaluatePermission(q: PermissionQuery): PermissionDecision;
 
 ---
 
-## The normalized `requestingOrigin` is authoritative
+## ⚠️ The two handlers have DIFFERENT signatures — do not assume symmetry
 
-`setPermissionCheckHandler` passes `webContents` as `null` for cross-origin subframes and for certain
-checks including `notifications`. Electron's own documented example calls `webContents.getURL()`,
-which is wrong in exactly those cases.
+This is the single most error-prone part of this contract. The handlers are **not** parallel, and a
+naive shared implementation silently misbehaves.
 
-**Rule**: decisions key off the **normalized** `requestingOrigin`. `webContents` may be used for
-logging context only, never for the decision, and must be null-checked at every use.
+| | `setPermissionCheckHandler` | `setPermissionRequestHandler` |
+| --- | --- | --- |
+| Signature | `(webContents, permission, requestingOrigin, details)` | `(webContents, permission, callback, details)` |
+| `requestingOrigin` | **present as a parameter** | **absent — does not exist** |
+| `webContents` | may be `null` (cross-origin subframes, `notifications`) | non-null |
+| Media type field | `details.mediaType` — **singular string** (`'audio'`/`'video'`/`'unknown'`) | `details.mediaTypes` — **array** (`['audio','video']`) |
+| `details` type | one object shape | a union: `PermissionRequest`, `MediaAccessPermissionRequest`, `FilesystemPermissionRequest`, `OpenExternalPermissionRequest` |
+
+Two consequences that will otherwise produce silent failures:
+
+1. **Reading `details.mediaType` in the request handler yields `undefined`.** Under the decision
+   matrix below, an absent media type denies. The result is that **every camera and microphone
+   request is silently denied and calls fail with no error** — the same failure signature spike S-5
+   exists to catch, arriving from a second direction. The request handler MUST read `mediaTypes` and
+   treat the request as granted only if every element is `audio` or `video`.
+2. **There is no `requestingOrigin` to key off in the request handler.** It must be derived — see
+   below. Falling back to `webContents.getURL()` there would decide on the **top-level page's**
+   origin rather than the actual requesting frame, granting a cross-origin RTC iframe access it was
+   never listed for. That is precisely the bypass the permission-origin allowlist exists to prevent.
+
+## Origin derivation
+
+Decisions key off a **normalized origin** in both handlers. How that origin is obtained differs.
+
+**Check handler** — use the `requestingOrigin` parameter directly. Do **not** call
+`webContents.getURL()`; `webContents` is `null` in exactly the cases that matter, and Electron's own
+documented example gets this wrong.
+
+**Request handler** — derive, in this strict precedence, stopping at the first that yields a value:
+
+1. `details.securityOrigin` — present on `MediaAccessPermissionRequest`; authoritative for `media`.
+2. The origin of `details.requestingUrl` — the last URL the requesting frame loaded, parsed via
+   WHATWG `URL` and reduced to `url.origin`.
+3. **Deny.** There is no third fallback. If neither field is present, the request is denied and the
+   event is logged with `permission`, `isMainFrame`, and which fields were absent.
+
+`webContents.getURL()` MUST NOT appear in either handler. `webContents` may be used for logging
+context only, never for the decision, and must be null-checked at every use.
+
+The derived value is then passed through `normalizeOrigin` and compared against the
+permission-origin allowlist. Both handlers converge on the same pure `evaluatePermission` after
+derivation — the derivation itself is the part that must not be shared.
 
 ### Normalization
 
@@ -85,15 +124,24 @@ stack runs in a cross-origin iframe, the request arrives from a different origin
 obvious cause. Do not implement against the assumption that one origin suffices; implement against
 the table, and populate the table from S-5.
 
-| Permission | `mediaType` | Origin | Decision |
+Media type is read from a **different field in each handler** (see the signature table above):
+`details.mediaType` (singular) in the check handler, `details.mediaTypes` (array) in the request
+handler. Both are normalized to a set before matching.
+
+| Permission | Media types requested | Origin | Decision |
 | --- | --- | --- | --- |
-| `media` | `audio` | approved | **grant** |
-| `media` | `video` | approved | **grant** |
-| `media` | `unknown` or absent | approved | deny |
+| `media` | `audio` only | approved | **grant** |
+| `media` | `video` only | approved | **grant** |
+| `media` | both `audio` and `video` | approved | **grant** |
+| `media` | includes `unknown`, or empty, or absent | approved | deny |
 | `media` | any | any other origin | deny |
 | `notifications` | — | approved | **grant** |
 | `notifications` | — | any other origin | deny |
 | anything else | — | any origin | deny |
+
+A `media` request grants only if the requested set is non-empty **and every element** is `audio` or
+`video`. A single unrecognized element denies the whole request — the request handler's `mediaTypes`
+is an array, so partial grants are not expressible through the callback and must not be faked.
 
 "Anything else" explicitly includes `geolocation`, `midi`, `midiSysex`, `hid`, `serial`, `usb`,
 `clipboard-read`, `clipboard-sanitized-write`, `deprecated-sync-clipboard-read`, `idle-detection`,
@@ -144,6 +192,14 @@ The web-layer grant is necessary but not sufficient. Camera and microphone also 
 - origin near-misses: `https://facebook.com.evil.example`, `http://www.facebook.com`,
   `https://www.facebook.com.evil.example` → denied
 - `requestingOrigin` of `''`, `'null'`, and a malformed string → denied, no throw
+- **request-handler origin derivation** (its own test file): `details.securityOrigin` present →
+  used; absent but `details.requestingUrl` present → origin derived from it; both absent → denied
+  and logged; `webContents.getURL()` never consulted
+- **`mediaTypes` array handling**: `['audio']`, `['video']`, `['audio','video']` at an approved
+  origin → granted; `[]`, `['unknown']`, `['audio','unknown']`, and `undefined` → denied
+- **cross-handler equivalence**: the same logical request expressed as check-handler
+  (`mediaType: 'video'`) and request-handler (`mediaTypes: ['video']`) inputs yields the identical
+  decision — the regression guard against the two paths drifting apart
 - **separation invariant**: `https://www.messenger.com` (navigable under redirect absorption) is
   denied `media` and `notifications` unless it is independently present in the permission-origin
   table

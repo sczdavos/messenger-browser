@@ -117,8 +117,13 @@ interface BadgeState { unreadCount: number; source: 'title' | 'none'; }
 ```
 
 Derived from `page-title-updated` by a pure parser: a leading `(N)` yields `N`; anything else yields
-`{ unreadCount: 0, source: 'none' }`. The parser must not throw on any input, must cap absurd values,
-and must treat a non-matching title as "no badge" rather than an error (R-006). This is the one
+`{ unreadCount: 0, source: 'none' }`. The parser must not throw on any input, must **cap
+`unreadCount` at 999** (higher values clamp to 999, matching the `(999+)` convention the site itself
+uses and the platform norm for Dock badges), and must treat a non-matching title as "no badge" rather
+than an error (R-006).
+
+**Whether the `(N)` pattern exists at all is unverified** — spike S-9 observes it before the badge is
+built. If absent, FR-056 is dropped rather than implemented by scraping (Principle VI). This is the one
 bounded coupling to site behaviour, recorded in the plan's Complexity Tracking.
 
 ### `ShellUiState` — **Option B only**

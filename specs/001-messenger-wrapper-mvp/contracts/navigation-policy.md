@@ -139,14 +139,39 @@ All delegate to `decide()`.
 | 1 | `setWindowOpenHandler` | popups, `window.open`, `target=_blank` | `{action:'deny'}` | `{action:'deny'}` + `openExternal` |
 | 2 | `will-navigate` | renderer-initiated main frame | `preventDefault()` | `preventDefault()` + `openExternal` |
 | 3 | `will-redirect` | **every** redirect hop | `preventDefault()` | `preventDefault()` + `openExternal` |
-| 4 | `webRequest.onBeforeRequest`, filter `resourceTypes: ['mainFrame']` | browser-initiated main-frame loads | `{cancel:true}` | `{cancel:true}` + `openExternal` |
+| 4 | `webRequest.onBeforeRequest`, filter `{ urls: ['<all_urls>'], types: ['mainFrame'] }` | browser-initiated main-frame loads | `{cancel:true}` | `{cancel:true}` + `openExternal` |
 
 **Why four**: Electron's navigation throttle emits `will-navigate` only for renderer-initiated,
 main-frame navigations; browser-initiated navigations bypass it entirely. `will-redirect` has no such
 restriction. Layer 4 nets what layer 2 structurally cannot see. See research R-004.
 
-**Layer 4 must filter `resourceTypes: ['mainFrame']` and nothing else.** Widening it blocks the
-subresources FR-010 requires be left alone, breaking page rendering.
+### ⚠️ Layer 4 filter — exact shape, and why it matters
+
+The `WebRequestFilter` structure has exactly three fields: **`urls` (required)**, `excludeUrls`
+(optional), and **`types`** (optional). The resource-type key is `types`, **not** `resourceTypes`,
+and `urls` may not be omitted. The registration is:
+
+```ts
+session.webRequest.onBeforeRequest(
+  { urls: ['<all_urls>'], types: ['mainFrame'] },
+  listener
+);
+```
+
+**Getting this wrong fails open, loudly and confusingly.** Electron silently ignores an unrecognized
+filter key, so writing `resourceTypes` — or omitting `urls` — causes the listener to fire for
+*every* request the page makes. `decide()` then runs against `fbcdn.net` and `facebook.net` asset
+loads, none of which are on the navigation allowlist, so every image, script, stylesheet, and XHR
+resolves to `open-external`: cancelled, and handed to `shell.openExternal`. The page renders as a
+blank shell while the user's default browser is spawned once per subresource. This directly violates
+FR-010.
+
+**Defence in depth**: the listener MUST additionally check `details.resourceType === 'mainFrame'` as
+its first statement and return `{ cancel: false }` immediately for anything else, before calling
+`decide()`. The filter and the guard are belt and braces — the filter is the mechanism, the guard is
+what survives someone editing the filter later.
+
+Widening either the filter or the guard blocks the subresources FR-010 requires be left alone.
 
 **Subframes are out of scope** — the constitution scopes the allowlist to top-level document
 navigation. Subframe isolation is Chromium's job. A subframe cannot navigate the top-level document
@@ -161,14 +186,48 @@ view or window pointed at remote content, and the only place `webPreferences` is
 
 ```ts
 export function createRemoteWindow(initialUrl: string): BrowserWindow;
-export function createRemotePopup(url: string, parent: BrowserWindow): BrowserWindow;
+
+// Popups are NOT constructed directly — see below.
+export function hardenedPopupOptions(): BrowserWindowConstructorOptions;
+export function attachRemoteHandlers(win: BrowserWindow): void;
 ```
 
 **The hardened `webPreferences` baseline is a frozen constant declared inside this same file.** It has
 no separate module: the lint rule below forbids the `webPreferences` identifier everywhere else, so a
 separate `web-preferences.ts` would violate the very rule it exists to serve. One file, one place.
 
-Each factory call, in one place: applies the frozen hardened `webPreferences`; attaches all four
+### Popups are created by Electron, not by the factory
+
+A popup opened via `window.open` is constructed by **Electron itself**, inside the
+`setWindowOpenHandler` flow. There is no point at which application code calls a constructor for it,
+so a `createRemotePopup(url, parent): BrowserWindow` signature is the wrong shape — calling it would
+either produce a second, uncontrolled window alongside Electron's, or leave Electron's window
+unhardened.
+
+The correct two-step pattern:
+
+```ts
+webContents.setWindowOpenHandler(({ url }) => {
+  const decision = decide(url);
+  if (decision.action !== 'allow-in-app') { /* deny, route externally */ }
+  return { action: 'allow', overrideBrowserWindowOptions: hardenedPopupOptions() };
+});
+
+// The window Electron then creates arrives here, where the rest is attached:
+webContents.on('did-create-window', (win) => attachRemoteHandlers(win));
+```
+
+`hardenedPopupOptions()` supplies the frozen `webPreferences` baseline that Electron merges into the
+window it constructs. `attachRemoteHandlers()` then binds the four navigation layers, the permission,
+device, display-media, and download handlers to the created window — the same routine
+`createRemoteWindow` uses internally, so the main window and every popup are hardened by the same
+code path.
+
+This uses the established, stable API pair. The newer `createWindow` callback variant of
+`setWindowOpenHandler` is deliberately not used: it is less established, and Principle IX prefers
+the documented, supported path.
+
+Each factory entry point, in one place: applies the frozen hardened `webPreferences`; attaches all four
 navigation layers; attaches the permission handlers, device-permission handler, and display-media
 handler; attaches the download handler; and binds the `persist:messenger` session.
 
@@ -187,7 +246,30 @@ convert "remember to use it" into a build failure.
 
 ### 6a. Security baseline — `tests/integration/security-baseline.test.ts`
 
-Asserted against the live application for **every** remote window and popup:
+**Assertion mechanism — specified, because the obvious approach is not available.** Electron exposes
+no *documented public* getter for a window's effective `webPreferences`. `getLastWebPreferences()`
+exists in Electron's source but is **not** in the published API reference, so depending on it would
+violate Principle IX (documented, supported platform APIs only) and could break silently on any
+upgrade. It MUST NOT be used.
+
+The baseline is therefore asserted on three complementary levels:
+
+| Level | Mechanism | Proves |
+| --- | --- | --- |
+| Unit | Import the frozen baseline constant from `remote-window-factory.ts` and assert every key/value | The intended configuration is correct |
+| Runtime (renderer) | Evaluate in the loaded page: `process.contextIsolated === true`, `process.sandboxed === true`, `typeof require === 'undefined'`, `typeof module === 'undefined'`, `window.process === undefined` | The configuration actually took effect in the live renderer |
+| Static (lint) | §6b rules | No code path can construct a window that bypasses the factory |
+
+The runtime level is the one that matters most: it observes the *realised* state of the renderer
+rather than the requested options, so it catches a factory that was bypassed or an option that
+Electron silently rejected. The unit and static levels catch what runtime checks cannot — an option
+that is wrong everywhere, or a second construction site added later.
+
+**Lint carve-out**: §6b's prohibition on the `webPreferences` identifier outside the factory MUST
+carry an explicit exception for `tests/**`, mirroring the wording of the policy-table import rule.
+Without it the rule and this suite contradict each other.
+
+The following are asserted for **every** remote window and popup:
 
 | Assertion | Expected |
 | --- | --- |
@@ -211,7 +293,9 @@ Asserted against the live application for **every** remote window and popup:
 ### 6b. Static assertions — lint, run in CI
 
 - no `new BrowserWindow` / `new WebContentsView` / `new BrowserView` outside the factory
-- no `webPreferences` identifier outside the factory
+- no `webPreferences` identifier outside the factory **and `tests/**`** (the test carve-out is
+  required — without it this rule contradicts §6a's mandatory assertion suite)
+- no use of `getLastWebPreferences` anywhere — undocumented API, Principle IX
 - no `preload` key anywhere in the codebase (Option A has zero preloads)
 - no `nodeIntegration: true`, `contextIsolation: false`, `sandbox: false`, `webSecurity: false`
   literal anywhere

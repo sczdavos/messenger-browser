@@ -287,11 +287,60 @@ Record it and amend FR-057 rather than adding notification interception, which F
 
 ---
 
+## S-9 — Unread-count pattern in the page title (observation only)
+
+**Scope is deliberately narrow.** This section observes one thing: whether Messenger exposes a
+stable unread count in the document title. It does **not** implement badge logic, does not parse for
+production use, and does not extend to any other page signal. Anything beyond recording observed
+title strings is out of scope for this spike.
+
+**Why it is here**: `spec.md` Dependencies lists "site-reported unread count" among its unverified
+assumptions, but unlike the other three it had no spike section — it would have been discovered only
+by a manual check *after* T072–T076 had already built the feature. This restores the observe-before-
+build discipline applied to auth paths, calls, and notifications.
+
+**Method**: attach a `page-title-updated` listener that logs the raw title string and a timestamp.
+No DOM access, no injected script, no parsing beyond recording the literal string (Principle VI, and
+the spike's observation-only rule). Then, with the second account:
+
+1. Note the title at zero unread.
+2. Send one message; note the title.
+3. Send several more; note the title at 2, 3, and 5+ unread.
+4. Read all messages; note the title returns to its zero-unread form.
+5. Repeat once after a page reload to confirm the pattern is not session-specific.
+
+**Record**: the literal title string at each step, and whether a count appears, where it appears, and
+in what format (`(3) Messenger`, `Messenger (3)`, `(9+)`, or absent).
+
+### Acceptance criteria
+
+| ID | Criterion |
+| --- | --- |
+| AC-S9-1 | The title format at zero unread and at N unread is recorded verbatim for at least four distinct values of N |
+| AC-S9-2 | A count is present in the title and its position and delimiter are consistent across all observations and across a reload |
+| AC-S9-3 | The count returns to the zero-unread form when messages are read |
+| AC-S9-4 | Any truncation convention above a threshold (e.g. `9+`, `99+`, `999+`) is recorded, so the parser's cap matches the site |
+
+**PASS**: AC-S9-1 … AC-S9-4 satisfied — FR-056 is implementable from the title alone, and T072's
+parser can be written against an observed format rather than a guessed one.
+
+**FAIL is an acceptable, expected outcome and is NOT a STOP condition.** If no stable count appears
+in the title, **FR-056 (Dock badge) is dropped from the MVP** and `spec.md` is amended accordingly.
+It MUST NOT be implemented by reading page content, which Principle VI forbids. Notifications
+(FR-055) are independent and unaffected either way — only the badge depends on this.
+
+Unlike S-5 and S-6, this section is **not blocking**: a negative result removes one requirement
+rather than invalidating the architecture.
+
+**Findings**: _not yet run_
+
+---
+
 ## S-8 — Architecture and constitution revalidation
 
 **Question**: Do the findings above invalidate anything in constitution v1.2.0 or the plan?
 
-**Checklist to complete after S-1…S-7**:
+**Checklist to complete after S-1…S-7 and S-9**:
 
 - [ ] Navigation allowlist (top-level) — still sufficient? Additions needed?
 - [ ] Authentication allowlist — final path set enumerated? Still narrow enough to avoid a host-level exception?
@@ -299,6 +348,7 @@ Record it and amend FR-057 rather than adding notification interception, which F
 - [ ] `messenger.com` redirect-absorption — was it ever exercised? Should it stay?
 - [ ] Hide-not-destroy lifecycle — viable at which escalation rung, at what documented resource cost?
 - [ ] Single-window architecture (Option A) — confirmed sufficient, or is chrome required after all?
+- [ ] Unread-count title pattern (S-9) — present and stable, or is FR-056 dropped by amendment?
 - [ ] Do any findings require a constitution amendment before implementation? List them.
 - [ ] Do any findings invalidate a spec requirement? List the FRs and the required amendments.
 
