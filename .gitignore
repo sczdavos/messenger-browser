@@ -1,8 +1,21 @@
 node_modules/
-out/
-dist/
 .vite/
+dist/
+out/
 .DS_Store
 coverage/
 playwright-report/
 test-results/
+
+# Local tooling and editor state
+.serena/project.local.yml
+.vscode/
+.idea/
+
+# Local configuration and transient files
+.env
+.env.*
+!.env.example
+*.log
+*.tmp
+*.swp
