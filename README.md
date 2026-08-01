@@ -26,9 +26,11 @@ npm run build:main
 npm run test:integration
 ```
 
-The packaged application is arm64-only. Signing requires `MESSENGER_BROWSER_SIGNING_IDENTITY` and
-notarization requires the Keychain profile named by `MESSENGER_BROWSER_NOTARY_PROFILE` (default:
-`messengerbrowser-notary`).
+The packaged application is arm64-only. For the current small testing group, it is intentionally
+distributed unsigned; macOS may require an explicit Open/Allow action on first launch. Apple
+Developer signing, notarization, and clean-Mac Gatekeeper verification are future/optional release
+work. When enabled, signing requires `MESSENGER_BROWSER_SIGNING_IDENTITY` and notarization requires
+the Keychain profile named by `MESSENGER_BROWSER_NOTARY_PROFILE` (default: `messengerbrowser-notary`).
 
 Electron 43 reaches end of life on 2027-01-05. Before shipping after that date, upgrade Electron,
 rerun the security and integration suites, and complete a constitutional re-audit.

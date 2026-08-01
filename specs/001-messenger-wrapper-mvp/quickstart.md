@@ -17,8 +17,8 @@ belongs in `tasks.md`; this is the run-and-verify guide.
 | --- | --- | --- |
 | macOS | 15 (Sequoia) or 26 (Tahoe) | Apple Silicon only |
 | Node.js | 22 LTS or newer | build tooling only; the app runs Electron's bundled Node 24.18 |
-| Xcode Command Line Tools | current | required for signing |
-| Apple Developer ID | — | required only for a distributable build — `TODO(SIGNING_IDENTITY)` |
+| Xcode Command Line Tools | current | required only for future signed builds |
+| Apple Developer ID | — | optional/future; current testing distribution is unsigned |
 | A real Messenger account | — | required for anything past the security tests |
 | A second account | — | required for call and notification validation |
 
@@ -211,6 +211,7 @@ Playwright cannot intercept native Electron dialogs (research R-009), so these a
 before every release:
 
 - [ ] Download save panel appears; cancel writes nothing
+- [ ] Downloaded attachments use a basename-only default and never auto-open
 - [ ] Clear Session Data confirmation dialog; cancel preserves the session
 - [ ] Clear Session Data confirmation dialog; cancel leaves the session and window unchanged
 - [ ] Cut / copy / paste inside the remote page's text fields

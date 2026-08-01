@@ -236,9 +236,9 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Download an attachment, confirm the save panel appears and the file is written unmodified.
 
-- [ ] T082 [US7] Implement download handling in `src/main/features/downloads.ts` on `session.on('will-download')` — never call `setSavePath`, set `setSaveDialogOptions` with a basename-only default so a site-suggested filename cannot escape the chosen directory, and never open or execute on completion
-- [ ] T083 [P] [US7] Write `tests/unit/download-filename.test.ts` covering suggested filenames containing path separators, `..` segments, null bytes, and excessive length
-- [ ] T084 [US7] Add the download save panel, cancel-writes-nothing, and no-auto-open items to the manual checklist in `quickstart.md` (Playwright cannot intercept native dialogs)
+- [X] T082 [US7] Implement download handling in `src/main/features/downloads.ts` on `session.on('will-download')` — never call `setSavePath`, set `setSaveDialogOptions` with a basename-only default so a site-suggested filename cannot escape the chosen directory, and never open or execute on completion
+- [X] T083 [P] [US7] Write `tests/unit/download-filename.test.ts` covering suggested filenames containing path separators, `..` segments, null bytes, and excessive length
+- [X] T084 [US7] Add the download save panel, cancel-writes-nothing, and no-auto-open items to the manual checklist in `quickstart.md` (Playwright cannot intercept native dialogs)
 
 **Checkpoint**: Downloads are user-directed and inert.
 
@@ -295,9 +295,9 @@ navigation and permission policy being enforced.
 
 - [X] T097 Create `build/entitlements.mac.plist` with **exactly three** entitlements — `com.apple.security.cs.allow-jit`, `com.apple.security.device.camera`, `com.apple.security.device.audio-input` — and explicitly NOT `allow-unsigned-executable-memory`, `disable-library-validation`, or `allow-dyld-environment-variables`
 - [X] T098 Configure conditional `osxSign` and `osxNotarize` in `forge.config.ts` with a Keychain profile (not `appleIdPassword`), Hardened Runtime enabled, and arm64-only output; signed builds require credentials
-- [ ] T099 [P] Write `tests/integration/entitlements.test.ts` or a CI script asserting the signed bundle carries exactly the three expected entitlements and no others
-- [ ] T100 Run `npm run make`, then verify with `codesign --verify --deep --strict`, `spctl --assess --type execute`, and `codesign -d --entitlements -`
-- [ ] T101 Install the DMG on a clean Mac that has never held the source; confirm launch with no Gatekeeper warning (SC-011)
+- [ ] T099 [P] **Future/optional signed-release task:** Write `tests/integration/entitlements.test.ts` or a CI script asserting the signed bundle carries exactly the three expected entitlements and no others
+- [ ] T100 **Future/optional signed-release task:** Run `npm run make`, then verify with `codesign --verify --deep --strict`, `spctl --assess --type execute`, and `codesign -d --entitlements -`
+- [ ] T101 **Future/optional signed-release task:** Install the DMG on a clean Mac; confirm launch with no Gatekeeper warning (SC-011)
 - [X] T102 [P] Write `README.md` documenting expected limitations caused by changes to Meta's website — that the app injects nothing and depends on no selectors, so site changes degrade to normal page loads; that the unread badge depends on the document title and silently disappears if that changes; and that navigation or authentication path changes surface as an explicit blocked-navigation message requiring a constitution amendment
 - [X] T103 Document the Electron 43 EOL date (2027-01-05) and the required upgrade-plus-constitutional-re-audit in `README.md`
 - [ ] T104 Execute the full `quickstart.md` validation sequence V1–V13 including the manual-only checklist

@@ -1,4 +1,9 @@
-import { BrowserWindow, type BrowserWindowConstructorOptions } from 'electron';
+import {
+  BrowserWindow,
+  type BrowserWindowConstructorOptions,
+  type Session,
+} from 'electron';
+import { attachDownloadHandler } from '../features/downloads';
 import { attachNavigationHandlers } from './navigation';
 import { attachPermissionHandlers } from './permissions';
 import { messengerSession } from '../session/partition';
@@ -18,6 +23,14 @@ export const HARDENED_REMOTE_WEB_PREFERENCES = Object.freeze({
   partition: 'persist:messenger',
 });
 
+const downloadHandlersAttached = new WeakSet<Session>();
+
+function attachDownloadHandlerOnce(session: Session): void {
+  if (downloadHandlersAttached.has(session)) return;
+  downloadHandlersAttached.add(session);
+  attachDownloadHandler(session);
+}
+
 export function hardenedPopupOptions(): BrowserWindowConstructorOptions {
   return { webPreferences: HARDENED_REMOTE_WEB_PREFERENCES };
 }
@@ -25,6 +38,7 @@ export function hardenedPopupOptions(): BrowserWindowConstructorOptions {
 export function attachRemoteHandlers(win: BrowserWindow): void {
   const ses = messengerSession();
   attachPermissionHandlers(ses);
+  attachDownloadHandlerOnce(ses);
   attachNavigationHandlers(win.webContents, ses, hardenedPopupOptions);
   win.webContents.on('did-create-window', (popup) =>
     attachRemoteHandlers(popup),
