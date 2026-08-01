@@ -1,7 +1,7 @@
 import type { BrowserWindow } from 'electron';
 import { isInvalidSessionUrl } from '../features/errors';
 import { createRemoteWindow } from '../security/remote-window-factory';
-import { loadBounds, saveBounds } from './bounds-store';
+import { loadBounds, loadZoomLevel, saveBounds } from './bounds-store';
 
 export const MESSENGER_URL = 'https://www.facebook.com/messages';
 
@@ -11,6 +11,7 @@ export function createMainWindow(): BrowserWindow {
     if (isInvalidSessionUrl(url)) win.show();
   });
   win.setMinimumSize(800, 600);
+  win.webContents.setZoomLevel(loadZoomLevel());
   const bounds = loadBounds();
   if (bounds) win.setBounds(bounds);
   const persist = (): void => saveBounds(win.getBounds());

@@ -181,13 +181,13 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Resize and move the window, quit, relaunch, confirm geometry restored. Exercise every menu item.
 
-- [ ] T062 [US4] Implement the application menu in `src/main/features/menu.ts` per contracts/menu-and-shortcuts.md — **no Find item and no ⌘F/⌘G binding** (FR-025 removed) — with standard Edit roles (undo, redo, cut, copy, paste, selectAll) which are required for clipboard operations to work in the remote page
-- [ ] T063 [US4] Implement Open Messenger Home in `src/main/features/menu.ts` navigating to the canonical `https://www.facebook.com/messages`
-- [ ] T064 [US4] Implement zoom controls in `src/main/features/menu.ts` using `webContents.setZoomLevel`, persisting the level via `src/main/window/bounds-store.ts`
-- [ ] T065 [US4] Implement allowlist-gated Back/Forward in `src/main/features/menu.ts` — read the target entry via `navigationHistory.getEntryAtIndex()`, run `decide()`, and disable the menu item when the entry is not `allow-in-app`
-- [ ] T066 [P] [US4] Write `tests/unit/bounds-store.test.ts` covering schema validation, minimum clamping, off-screen repositioning after a display change, atomic write, and recovery from a truncated file
-- [ ] T067 [P] [US4] Write `tests/integration/menu.test.ts` asserting menu structure matches the contract, Open Messenger Home navigates correctly, zoom persists across relaunch, and Back/Forward are disabled for non-allowlisted history entries
-- [ ] T068 [P] [US4] Write `tests/integration/window-state.test.ts` asserting geometry restores across relaunch and that a second launch focuses the existing window rather than opening a second one
+- [X] T062 [US4] Implement the application menu in `src/main/features/menu.ts` per contracts/menu-and-shortcuts.md — **no Find item and no ⌘F/⌘G binding** (FR-025 removed) — with standard Edit roles (undo, redo, cut, copy, paste, selectAll) which are required for clipboard operations to work in the remote page
+- [X] T063 [US4] Implement Open Messenger Home in `src/main/features/menu.ts` navigating to the canonical `https://www.facebook.com/messages`
+- [X] T064 [US4] Implement zoom controls in `src/main/features/menu.ts` using `webContents.setZoomLevel`, persisting the level via `src/main/window/bounds-store.ts`
+- [X] T065 [US4] Implement allowlist-gated Back/Forward in `src/main/features/menu.ts` — read the target entry via `navigationHistory.getEntryAtIndex()`, run `decide()`, and disable the menu item when the entry is not `allow-in-app`
+- [X] T066 [P] [US4] Write `tests/unit/bounds-store.test.ts` covering schema validation, minimum clamping, off-screen repositioning after a display change, atomic write, and recovery from a truncated file
+- [X] T067 [P] [US4] Write `tests/integration/menu.test.ts` asserting menu structure matches the contract, Open Messenger Home navigates correctly, zoom persists across relaunch, and Back/Forward are disabled for non-allowlisted history entries
+- [X] T068 [P] [US4] Write `tests/integration/window-state.test.ts` asserting geometry restores across relaunch and that a second launch focuses the existing window rather than opening a second one
 
 **Checkpoint**: The app behaves as a native macOS application.
 

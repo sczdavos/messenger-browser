@@ -1,5 +1,7 @@
 import { app, type BrowserWindow } from 'electron';
+import { installApplicationMenu } from './features/menu';
 import { createMainWindow } from './window/main-window';
+import { flushBounds } from './window/bounds-store';
 
 const hasLock = app.requestSingleInstanceLock();
 if (!hasLock) {
@@ -27,6 +29,7 @@ if (!hasLock) {
 
   app.on('before-quit', () => {
     isQuitting = true;
+    flushBounds();
   });
 
   app.on('activate', () => {
@@ -37,5 +40,6 @@ if (!hasLock) {
 
   void app.whenReady().then(() => {
     mainWindow = newMainWindow();
+    installApplicationMenu(() => mainWindow);
   });
 }

@@ -11,6 +11,18 @@ function settingsPath(): string {
   return join(app.getPath('userData'), FILE_NAME);
 }
 
+function loadSettings(): AppSettings | undefined {
+  if (!existsSync(settingsPath())) return undefined;
+  try {
+    return (
+      parseSettings(JSON.parse(readFileSync(settingsPath(), 'utf8'))) ??
+      undefined
+    );
+  } catch {
+    return undefined;
+  }
+}
+
 function clampToDisplays(bounds: Rectangle): Rectangle {
   const displays = screen.getAllDisplays();
   const workArea =
@@ -36,32 +48,54 @@ function clampToDisplays(bounds: Rectangle): Rectangle {
 }
 
 export function loadBounds(): Rectangle | undefined {
-  if (!existsSync(settingsPath())) return undefined;
-  try {
-    const parsed = parseSettings(
-      JSON.parse(readFileSync(settingsPath(), 'utf8')),
-    );
-    return parsed?.windowBounds
-      ? clampToDisplays(parsed.windowBounds)
-      : undefined;
-  } catch {
-    return undefined;
-  }
+  const settings = loadSettings();
+  return settings?.windowBounds
+    ? clampToDisplays(settings.windowBounds)
+    : undefined;
 }
 
 let saveTimer: ReturnType<typeof setTimeout> | undefined;
+let pendingBounds: Rectangle | undefined;
+
+function writeSettings(data: AppSettings): void {
+  const path = settingsPath();
+  const tempPath = `${path}.tmp`;
+  writeFileSync(tempPath, JSON.stringify(data));
+  renameSync(tempPath, path);
+}
+
+export function loadZoomLevel(): number {
+  return loadSettings()?.zoomLevel ?? 0;
+}
+
+export function saveZoomLevel(zoomLevel: number): void {
+  const existing = loadSettings();
+  writeSettings({
+    schemaVersion: 1,
+    ...(existing?.windowBounds ? { windowBounds: existing.windowBounds } : {}),
+    zoomLevel,
+  });
+}
+
+export function flushBounds(): void {
+  if (saveTimer) clearTimeout(saveTimer);
+  if (!pendingBounds) return;
+  const existing = loadSettings();
+  writeSettings({
+    schemaVersion: 1,
+    windowBounds: clampToDisplays(pendingBounds),
+    ...(existing?.zoomLevel !== undefined
+      ? { zoomLevel: existing.zoomLevel }
+      : {}),
+  });
+  pendingBounds = undefined;
+  saveTimer = undefined;
+}
 
 export function saveBounds(bounds: Rectangle): void {
   if (saveTimer) clearTimeout(saveTimer);
+  pendingBounds = bounds;
   saveTimer = setTimeout(() => {
-    const path = settingsPath();
-    const tempPath = `${path}.tmp`;
-    const data: AppSettings = {
-      schemaVersion: 1,
-      windowBounds: clampToDisplays(bounds),
-    };
-    writeFileSync(tempPath, JSON.stringify(data));
-    renameSync(tempPath, path);
-    saveTimer = undefined;
+    flushBounds();
   }, 500);
 }
