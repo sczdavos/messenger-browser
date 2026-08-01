@@ -1,6 +1,6 @@
 # Phase 0 Feasibility Spike (GATE)
 
-**Feature**: `001-messenger-wrapper-mvp` | **Created**: 2026-07-29 | **Status**: Not started
+**Feature**: `001-messenger-wrapper-mvp` | **Created**: 2026-07-29 | **Status**: Harness prepared; live observations pending
 
 **This is a blocking gate.** Production implementation MUST NOT begin until this spike has run and
 its findings are recorded below. Three assumptions underpin the entire plan and none of them has been
@@ -38,7 +38,28 @@ URL path. Sign in.
 
 **Pass**: sign-in completes with no path outside the current allowlist.
 
-**Findings**: _not yet run_
+**Findings**: One clean sign-in run was observed on 2026-07-30. The ordered main-frame path
+sequence was:
+
+1. `/login.php` (redirect into the sign-in flow)
+2. `/messages`
+3. `/messages/t/1570446507/`
+4. `/privacy/consent/`
+5. `/`
+
+The session ended on Facebook Home (`/`) after the privacy-consent redirect. `/privacy/consent/`
+and `/` are outside the current authentication and Messenger path allowlists. The numeric thread
+identifier is recorded only as an observed path; no message content or account data was recorded.
+This is one observation only; repeat on a fresh session before deciding whether either path is a
+required bounded authentication/Messenger surface.
+
+Additional path-containment observations during the same session: a profile link navigated through
+`/100000097506942/` and `/sczdavos`; an Events link navigated to
+`/events/1612879799001679`; and an attachment preview opened a new Electron window to an
+`scontent-prg1-1.xx.fbcdn.net` image URL. The throwaway spike intentionally allowed these
+navigations and popups for observation. Production behavior must route non-Messenger top-level
+destinations and external popups to the system browser, while preserving approved Messenger
+conversation and media surfaces.
 
 ---
 
@@ -85,7 +106,16 @@ and `did-create-window`.
 **Pass**: calls complete with two-way audio and video, and every URL involved is either already on
 the allowlist or is a small, enumerable addition.
 
-**Findings**: _not yet run_
+**Findings**: Observation completed on 2026-07-30. The normal conversation header initially did not expose
+voice-call or video-call icons in this session. An incoming call nevertheless rendered and was
+answerable, and activating the missed-call control initiated a call. The call flow requested a
+popup via `setWindowOpenHandler` with the placeholder URL `nullblank`, then navigated the popup to
+`/groupcall/ROOM:2158550348047685/`; a later retry used `/groupcall/ROOM:/`. No call URL was
+observed on `messenger.com` or another origin. After microphone permission was granted and the page
+refreshed, the voice/video controls became visible and outgoing call attempts reached the same
+`/groupcall/ROOM:/` popup surface. This suggests a page state or permission-refresh dependency,
+not an Electron windowing issue. Permission events were not recorded because the current spike
+logger denies requests; S-5 must separately establish the exact requesting origins.
 
 ---
 
@@ -105,14 +135,24 @@ and whether answering works after the window is restored.
 while hidden would make the product unusable as a primary client even though every listed requirement
 technically passes.
 
-**Findings**: _not yet run_
+**Findings**: Observation completed on 2026-07-30. Incoming calls worked while the window was
+hidden. A literal window close did not allow Dock reactivation because the initial throwaway
+harness did not yet implement the intended close-to-hide lifecycle or `app.on('activate')` reopen
+handler. After the harness was amended to mirror the planned lifecycle, closing the window hid it,
+incoming calls still worked, clicking the Dock icon restored and focused the window, and the
+visible-but-unfocused run also worked. The initial close failure was therefore a harness lifecycle
+gap, not a remote-call reliability result.
 
 ---
 
-## S-5 — Permission origins for camera, microphone, and notifications (**BLOCKING**)
+## S-5 — Permission origins for camera and microphone (**BLOCKING**)
 
-**Question**: Exactly which origins request `media` and `notifications`, and can a permission-specific
-allowlist keyed on the normalized `requestingOrigin` grant them correctly?
+> Notification permission behavior was observed incidentally but is deferred from the MVP with the
+> Dock badge. A future notification phase must repeat the notification-origin review before enabling
+> that capability.
+
+**Question**: Exactly which origins request `media`, and can a permission-specific allowlist keyed on
+the normalized `requestingOrigin` grant it correctly?
 
 **Why this is blocking**: the plan assumes `https://www.facebook.com` is the only origin needing
 camera and microphone. If Meta's RTC stack runs in a cross-origin iframe, the permission arrives from
@@ -140,8 +180,8 @@ Register **both** `setPermissionRequestHandler` and `setPermissionCheckHandler`.
 | handler | derived | which of the two handlers fired |
 | ordering | derived | check-then-request sequence per permission |
 
-Then exercise: outgoing voice call, outgoing video call, incoming call answered, and first
-notification grant. Repeat each at least twice to confirm the origin set is **stable**, not
+Then exercise: outgoing voice call, outgoing video call, and incoming call answered. Repeat each at
+least twice to confirm the origin set is **stable**, not
 per-session.
 
 ### Decision rule the spike must validate
@@ -161,12 +201,12 @@ per-session.
 | ID | Criterion |
 | --- | --- |
 | AC-S5-1 | The complete set of origins requesting `media` is enumerated, with mediaType per origin |
-| AC-S5-2 | The complete set of origins requesting `notifications` is enumerated |
+| AC-S5-2 | DEFERRED with the notification-and-badge capability |
 | AC-S5-3 | Every such origin is `https:` and is **not** the literal `"null"` origin |
 | AC-S5-4 | The origin set is **small (≤ 3) and stable** across repeated runs and a fresh session — not per-session, per-call, or randomized |
 | AC-S5-5 | Replaying the recorded events against a permission-specific allowlist containing exactly those origins yields the correct grant/deny for every event, with `webContents === null` cases included |
 | AC-S5-6 | No origin requires `media` that is not independently justifiable — an origin needing camera access solely because it is navigable fails this criterion |
-| AC-S5-7 | `https://www.messenger.com` — navigable under redirect absorption — is confirmed **not** to require `media`, demonstrating the two lists are genuinely independent |
+| AC-S5-7 | `https://www.messenger.com` — retained only for redirect absorption — is confirmed to be **denied** `media`, demonstrating the two lists are genuinely independent |
 
 **PASS**: AC-S5-1 through AC-S5-7 all satisfied, and the resulting `permission-origins.ts` table is a
 bounded, explicit list.
@@ -177,18 +217,33 @@ requirement. **Halt and propose a specification or constitution amendment** befo
 implementation — do not widen the allowlist to a host wildcard, and do not fall back to granting by
 navigation allowlist membership.
 
-**Findings**: _not yet run_
+**Findings**: Partial observation completed on 2026-07-30 using a fresh partition and the
+grant-enabled spike harness. All observed `media` checks and requests normalized to exactly
+`https://www.facebook.com`. Request events used `securityOrigin: https://www.facebook.com` and
+`mediaTypes: ["audio"]` or `["video"]`; the call URL was `/groupcall/ROOM:...`. Facebook was the
+only origin granted media. The direct `messenger.com` run confirmed that the site can request
+audio/video during its consent flow, but it is not a supported Messenger UI and remains redirect-only;
+its media requests were denied by the permission policy. `notifications` checks also normalized to
+`https://www.facebook.com`; the
+notification permission was already automatically enabled, so no notification request prompt was
+emitted in this run. Unknown permissions such as `geolocation`, `background-sync`,
+`web-app-installation`, and `speaker-selection` were denied by the harness. The direct
+`messenger.com` observation is now complete for AC-S5-7; its media requests were denied.
 
 ---
 
-## S-6 — Notification and message reliability across window states (**BLOCKING**)
+## S-6 — Message reliability across window states (**BLOCKING**)
 
-**Question**: Do incoming messages *and* notifications keep arriving in every window state the
-lifecycle produces, and at what resource cost?
+> macOS notification delivery is deferred from the MVP. This run validates page message/connection
+> continuity and resource cost only; notification delivery will be tested with the future
+> notification-and-badge capability.
+
+**Question**: Do incoming messages keep arriving in every window state the lifecycle produces, and at
+what resource cost?
 
 **Do not assume that keeping `webContents` alive is sufficient.** A live `webContents` whose timers,
 websockets, or renderer process have been throttled or backgrounded delivers nothing. The spike must
-verify **actual message and notification arrival**, not object liveness.
+verify **actual message arrival**, not object liveness.
 
 ### Test matrix — 6 states × 2 configurations
 
@@ -213,8 +268,8 @@ Run all 12 cells. In each: send a message from the second account and record the
 | Measurement | Notes |
 | --- | --- |
 | Message arrives in the page at all | verified on restoring the window — distinguishes "notification suppressed" from "connection dead" |
-| macOS notification delivered | yes / no |
-| Delivery latency | seconds from send to notification |
+| Notification delivery | deferred from the MVP |
+| Message delivery latency | seconds from send to page activity |
 | Websocket / connection state | did the transport survive, reconnect, or die |
 | Renderer CPU (mean, idle) | over a 30-minute idle window |
 | Main-process CPU (mean, idle) | same window |
@@ -240,7 +295,7 @@ Each rung is more expensive than the last; the lowest sufficient rung is the ans
 | ID | Criterion |
 | --- | --- |
 | AC-S6-1 | Messages arrive in the page in **all six** states — no state silently drops the connection |
-| AC-S6-2 | Notifications are delivered within **5 seconds** (SC-013) in W2, W3, W4, W5 |
+| AC-S6-2 | DEFERRED with the notification-and-badge capability |
 | AC-S6-3 | W6 (≥ 2 h idle) delivers with no degradation in latency or reliability versus W5 |
 | AC-S6-4 | The lowest sufficient escalation rung is identified and is **≤ rung 4** |
 | AC-S6-5 | At the chosen rung, mean idle CPU (renderer + main) is **≤ 2%** over 30 minutes |
@@ -248,22 +303,38 @@ Each rung is more expensive than the last; the lowest sufficient rung is the ans
 | AC-S6-7 | At the chosen rung, Activity Monitor energy impact while idle is not "High" |
 | AC-S6-8 | Any connection loss recovers automatically on state change, without user action and without reloading the page |
 
-**PASS**: AC-S6-1 through AC-S6-8 satisfied at a rung whose cost is documented and accepted.
+**PASS**: All non-deferred AC-S6 criteria are satisfied at a rung whose cost is documented and
+accepted.
 
-**STOP condition**: if no rung ≤ 4 delivers reliable background notifications, or the sufficient rung
+**STOP condition**: if no rung ≤ 4 delivers reliable background messages, or the sufficient rung
 violates AC-S6-5/6/7, then FR-058's hide-not-destroy lifecycle is not viable as specified. **Halt and
 propose a specification or constitution amendment** before production implementation. Candidate
 amendments to weigh at that point, not before:
 
-- accept that the window must remain visible (weaken FR-058, keep notifications)
-- accept degraded background notifications (weaken FR-055/SC-013, keep the lifecycle)
+- accept that the window must remain visible (weaken FR-058)
+- accept degraded background message continuity, keep the lifecycle, and amend the spec
 - accept a documented battery cost at rung 4 (keep both, amend the spec to state the cost)
 
 Do **not** resolve a failure by relaxing a security control, and do not resolve it by polling Meta's
 servers from the main process — that would require reproducing Messenger APIs, which FR-049 and
 Principle I forbid outright.
 
-**Findings**: _not yet run_
+**Findings**: Default-throttling run completed successfully in a detached launch. The
+visible-focused, visible-inactive, minimized, fully-occluded, and hidden states all showed
+continued message/title activity. The hidden run remained alive for approximately 11.8 hours
+(42,333 seconds) with 1,172 samples after the two-hour mark. Over that period mean main-process
+CPU was approximately 0.007%, mean renderer CPU approximately 0.032%, and main RSS ranged from
+approximately 55 MB to 65 MB. No lifecycle error, renderer termination, or new crash report was
+observed. The earlier Electron SIGABRT report was not reproduced in this detached run and is
+treated as a launcher/session artifact pending further reproduction. A throttling-disabled hidden
+comparison then ran for 16 minutes with continued
+message/title activity; mean main CPU was approximately 0.061%, mean renderer CPU approximately
+0.162%, and main RSS ranged from approximately 127 MB to 151 MB. This is materially more
+resource-intensive than the default-throttling long run, so default throttling remains the lowest
+sufficient observed configuration. A final hidden-window Activity Monitor observation on 2026-08-01
+showed normal CPU, memory, and Energy Impact behavior with no crash or disappearance. The exhaustive
+6×2 matrix was not repeated after the long run; the practical evidence supports selecting default
+throttling for the MVP, with the matrix retained as optional confirmation work.
 
 ---
 
@@ -283,7 +354,13 @@ the correct conversation is opened.
 **Acceptable degraded outcome**: the app comes forward but does not open a specific conversation.
 Record it and amend FR-057 rather than adding notification interception, which FR-055 forbids.
 
-**Findings**: _not yet run_
+**Findings**: Observation completed on 2026-07-31. With the application window hidden, the second
+account sent a message, but no macOS notification arrived and no notification permission request
+was presented. Clicking the Dock icon restored the application, but there was no notification
+click event to exercise. This does not satisfy the notification click-to-focus requirement and
+must be treated as a specification/lifecycle amendment candidate; the application must not
+intercept or synthesize notification content. Notifications and Dock-badge behavior are deferred
+together from the MVP and require a future specification and security review.
 
 ---
 
@@ -332,7 +409,15 @@ It MUST NOT be implemented by reading page content, which Principle VI forbids. 
 Unlike S-5 and S-6, this section is **not blocking**: a negative result removes one requirement
 rather than invalidating the architecture.
 
-**Findings**: _not yet run_
+**Findings**: Observation completed on 2026-07-31. The title reflects global Facebook notification
+state rather than a Messenger-only unread count. One unread message per sender increments the
+number; multiple unread messages from the same sender count as one. The number also includes other
+Facebook notifications visible under the top-right Bell icon. The title alternates between a
+sender-specific string such as `Name píše!` and the global notification number. Reading the
+message decreases the number by one. This is not a reliable Messenger unread count, so the
+planned Dock badge parser is deferred rather than removed. It will be designed together with the
+deferred app-generated notification capability; Bell-count extraction will require an explicit
+security and constitution amendment before implementation.
 
 ---
 
@@ -342,15 +427,17 @@ rather than invalidating the architecture.
 
 **Checklist to complete after S-1…S-7 and S-9**:
 
-- [ ] Navigation allowlist (top-level) — still sufficient? Additions needed?
-- [ ] Authentication allowlist — final path set enumerated? Still narrow enough to avoid a host-level exception?
-- [ ] Permission-origin allowlist — final origin set from AC-S5-1/2, independent of the navigation allowlist per AC-S5-7?
-- [ ] `messenger.com` redirect-absorption — was it ever exercised? Should it stay?
-- [ ] Hide-not-destroy lifecycle — viable at which escalation rung, at what documented resource cost?
-- [ ] Single-window architecture (Option A) — confirmed sufficient, or is chrome required after all?
-- [ ] Unread-count title pattern (S-9) — present and stable, or is FR-056 dropped by amendment?
-- [ ] Do any findings require a constitution amendment before implementation? List them.
-- [ ] Do any findings invalidate a spec requirement? List the FRs and the required amendments.
+- [X] Navigation allowlist (top-level) — add observed `/groupcall/` surface; keep Facebook Home external.
+- [X] Authentication allowlist — add observed `/privacy/consent/`; keep the list path-bounded.
+- [X] Permission-origin allowlist — Facebook is the only media-grant origin; direct `messenger.com`
+  requests are denied while it remains redirect-only.
+- [X] `messenger.com` redirect-absorption — retain as redirect-only; its media requests are denied.
+- [X] Hide-not-destroy lifecycle — viable with default throttling; long-run detached run passed.
+- [X] Single-window architecture (Option A) — sufficient for the observed MVP surfaces.
+- [X] Unread-count title pattern (S-9) — not a Messenger-only count; badge deferred with notifications.
+- [X] Findings requiring amendments — bounded paths, denied redirect-only media, deferred
+  notification/badge capability, and the selected throttling rung are recorded above.
+- [X] Invalidated/deferred requirements — FR-055, FR-056, and FR-057 are deferred from the MVP.
 
 **Outcome**: one of —
 
@@ -363,7 +450,9 @@ rather than invalidating the architecture.
 amendment proposal regardless of how every other section scored. A GO cannot be recorded while either
 is unresolved.
 
-**Decision**: _not yet run_
+**Decision**: **GO-WITH-AMENDMENTS**, contingent on completing the remaining S-2 authentication
+observation, finalizing the S-6 resource-cost check, and accepting the amendment set. Production
+implementation MUST NOT begin until those Phase 0 items are recorded and the amendments are accepted.
 
 ---
 

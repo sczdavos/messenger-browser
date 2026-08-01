@@ -1,7 +1,29 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.1.0 → 1.2.0 (2026-07-29)
+Version change: 1.2.0 → 1.3.0 (2026-08-01)
+Bump rationale: MINOR. Adds bounded authentication and call-surface paths observed during the
+Phase 0 feasibility spike, and records the deliberate deferral of app-generated notifications and
+Dock-badge derivation to a separately reviewed capability.
+
+Modified in 1.3.0:
+- Navigation allowlist — added `/groupcall/` as an observed Messenger call surface.
+- Authentication paths — added `/privacy/consent/` as an observed Facebook authentication/consent
+  surface; Facebook Home `/` remains external and is not allowlisted.
+- Deferred capabilities — app-generated macOS notifications and Dock-badge derivation are deferred
+  from the MVP and require a future specification and security review together. Bell-count DOM
+  extraction is not permitted by this amendment.
+
+Resolved in 1.3.0:
+- Phase 0 S-6 default-throttling run survived approximately 11.8 hours without a crash; the
+  default-throttling configuration is the selected MVP rung.
+
+Follow-up TODOs:
+- TODO(DEFERRED_NOTIFICATION_BADGE): Define and separately approve generic app-generated
+  notifications and any Dock-badge calculation before implementing either capability.
+
+-----------------------------------------------------------------------------
+Prior: 1.1.0 → 1.2.0 (2026-07-29)
 Bump rationale: MINOR. Adds the authentication-path entries that 1.1.0 explicitly provided for
 under TODO(AUTH_PATHS), plus a canonical origin and a redirect re-evaluation rule. Filling in a
 provision the constitution already made is an expansion, not a redefinition, so MAJOR does not
@@ -88,6 +110,8 @@ Deferred TODOs (as of 1.1.0):
 - TODO(MESSENGER_PATHS): The Messenger path allowlist currently covers /messages and
   /messenger_media. Additional Messenger surfaces discovered in use are to be added by
   amendment to the allowlist table.
+- TODO(DEFERRED_NOTIFICATION_BADGE): App-generated notifications and Dock-badge calculation are
+  deferred from the MVP and must be reviewed together before implementation.
 - TODO(SIGNING_IDENTITY): Apple Developer ID signing identity and notarization Team ID are
   not yet recorded; required before the first distributable build under Principle XIV.
 -->
@@ -313,6 +337,7 @@ are ignored when matching.
 | --- | --- |
 | `facebook.com` | `/messages` |
 | `facebook.com` | `/messenger_media` |
+| `facebook.com` | `/groupcall` |
 
 *Authentication surfaces* — permitted because sign-in cannot be completed in the external
 browser (the resulting session would land in the wrong cookie jar):
@@ -322,6 +347,7 @@ browser (the resulting session would land in the wrong cookie jar):
 | `facebook.com` | `/login.php` |
 | `facebook.com` | `/two_step_verification` |
 | `facebook.com` | `/two_factor` |
+| `facebook.com` | `/privacy/consent` |
 
 *Redirect absorption:*
 

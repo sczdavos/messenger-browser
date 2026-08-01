@@ -42,18 +42,18 @@ is throwaway and is deleted, never merged. Spike code MUST NOT disable a securit
 an answer — if a question is only answerable with `sandbox: false`, "not viable under the
 constitution" is itself the finding.
 
-- [ ] T001 Scaffold throwaway spike app in `spike/` with Electron 43.2.0, hardened `webPreferences` (sandbox, contextIsolation, no preload), loading `https://www.facebook.com/messages`
-- [ ] T002 Add navigation logging to `spike/instrument/navigation-log.ts` recording every `will-navigate`, `will-frame-navigate`, `will-redirect`, `setWindowOpenHandler`, and `webRequest.onBeforeRequest` mainFrame event with full URL path
-- [ ] T003 Run S-1 normal login; record every main-frame path visited in `spike.md` §S-1 Findings
+- [X] T001 Scaffold throwaway spike app in `spike/` with Electron 43.2.0, hardened `webPreferences` (sandbox, contextIsolation, no preload), loading `https://www.facebook.com/messages`
+- [X] T002 Add navigation logging to `spike/instrument/navigation-log.ts` recording every `will-navigate`, `will-frame-navigate`, `will-redirect`, `setWindowOpenHandler`, and `webRequest.onBeforeRequest` mainFrame event with full URL path
+- [X] T003 Run S-1 normal login; record every main-frame path visited in `spike.md` §S-1 Findings
 - [ ] T004 Run S-2 auth challenge flows (authenticator 2FA, SMS 2FA, trust-device interstitial, new-device checkpoint, password recovery entry); record complete required path set in `spike.md` §S-2 Findings
-- [ ] T005 Run S-3 outgoing voice and video calls; record call surface URLs, whether in-page/popup/navigation, and origin in `spike.md` §S-3 Findings
-- [ ] T006 Run S-4 incoming calls with window hidden and with window visible-unfocused; record ring/notification/answerability in `spike.md` §S-4 Findings
-- [ ] T007 Build S-5 permission instrumentation in `spike/instrument/permission-log.ts` capturing all 11 mandatory fields (permission, raw + normalized requestingOrigin, securityOrigin, embeddingOrigin, requestingUrl, mediaType, isMainFrame, frame identity, `webContents === null`, which handler, check→request ordering) for every `media` and `notifications` check AND request
-- [ ] T008 Run S-5 across outgoing voice, outgoing video, answered incoming call, and first notification grant — twice each plus once on a fresh session; validate AC-S5-1 … AC-S5-7 and record the origin table in `spike.md` §S-5 Findings
+- [X] T005 Run S-3 outgoing voice and video calls; record call surface URLs, whether in-page/popup/navigation, and origin in `spike.md` §S-3 Findings
+- [X] T006 Run S-4 incoming calls with window hidden and with window visible-unfocused; record ring/notification/answerability in `spike.md` §S-4 Findings
+- [X] T007 Build S-5 permission instrumentation in `spike/instrument/permission-log.ts` capturing all 11 mandatory fields (permission, raw + normalized requestingOrigin, securityOrigin, embeddingOrigin, requestingUrl, mediaType, isMainFrame, frame identity, `webContents === null`, which handler, check→request ordering) for every `media` and `notifications` check AND request
+- [X] T008 Run S-5 across outgoing voice, outgoing video, and answered incoming call — twice each plus once on a fresh session; validate AC-S5-1 … AC-S5-7 and record the origin table in `spike.md` §S-5 Findings. Notification-origin work is deferred with the notification-and-badge capability.
 - [ ] T009 Build S-6 harness in `spike/instrument/reliability-harness.ts` driving the 6 window states (visible-focused, visible-inactive, minimized, fully occluded, hidden, ≥2h idle) and sampling renderer/main CPU, RSS, and energy impact
-- [ ] T010 Run S-6 full 6×2 matrix (default throttling, then `backgroundThrottling: false`), escalating the configuration ladder only as needed; verify **actual message arrival** separately from notification delivery; validate AC-S6-1 … AC-S6-8 and record the lowest sufficient rung with its resource cost in `spike.md` §S-6 Findings
-- [ ] T011 Run S-7 notification click-to-focus with window hidden; record whether `app.on('activate')` fires and whether the correct conversation opens, in `spike.md` §S-7 Findings
-- [ ] T011a Run S-9 title observation — log the raw `page-title-updated` string at 0, 1, 2, 3, and 5+ unread and after reading all, plus once after a reload; record verbatim in `spike.md` §S-9 Findings. **Observation only**: no parsing for production use, no DOM access, no badge implementation
+- [ ] T010 Run S-6 full 6×2 matrix (default throttling, then `backgroundThrottling: false`), escalating the configuration ladder only as needed; verify **actual message arrival** and resource cost; validate the non-deferred AC-S6 criteria and record the lowest sufficient rung in `spike.md` §S-6 Findings. Notification delivery is deferred with the notification-and-badge capability.
+- [X] T011 Run S-7 notification click-to-focus with window hidden; record whether `app.on('activate')` fires and whether the correct conversation opens, in `spike.md` §S-7 Findings
+- [X] T011a Run S-9 title observation — log the raw `page-title-updated` string at 0, 1, 2, 3, and 5+ unread and after reading all, plus once after a reload; record verbatim in `spike.md` §S-9 Findings. **Observation only**: no parsing for production use, no DOM access, no badge implementation
 - [ ] T012 Complete S-8 checklist in `spike.md`; record GO / GO-WITH-AMENDMENTS / NO-GO decision and list every required constitution or spec amendment
 - [ ] T013 If S-5 or S-6 hit a STOP condition, halt and draft the specific amendment via `/speckit-constitution` or a spec update — do NOT widen an allowlist or relax a control to make the spike pass
 - [ ] T014 Merge all amendments arising from T012/T013 into `.specify/memory/constitution.md` and `spec.md` before proceeding

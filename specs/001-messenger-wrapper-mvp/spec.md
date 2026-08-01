@@ -132,20 +132,18 @@ restored. Exercise every menu item and its shortcut.
 
 ---
 
-### User Story 5 - Know when a message arrives (Priority: P2)
+### User Story 5 - Know when a message arrives (Priority: P2, deferred from MVP)
 
-The user closes the window or switches to another application. A message arrives. A macOS
-notification appears, and the Dock icon shows an unread count. Clicking the notification brings the
-conversation forward. The application keeps running after the window is closed, so this continues to
-work until the user quits.
+This story is deferred from the MVP. It remains the target for a later notification-and-badge phase;
+the MVP only retains the hide-not-destroy lifecycle and Dock-icon reactivation behavior.
 
 **Why this priority**: Without this the product is a tab you have to remember to look at. It is P2
 rather than P1 because messaging itself works without it, but it is what makes the application usable
 as someone's primary Messenger client.
 
-**Independent Test**: Sign in, close the window, have a second account send a message, and confirm a
-notification and Dock badge appear and that clicking the notification restores the window to the
-right conversation.
+**Independent Test (future phase)**: Sign in, close the window, have a second account send a message,
+and confirm a notification and Dock badge appear and that clicking the notification restores the
+window to the right conversation.
 
 **Acceptance Scenarios**:
 
@@ -413,27 +411,25 @@ page at all: every item is either a native role or a main-process navigation com
 #### F. Permissions
 
 - **FR-027**: All web-layer permission requests MUST be denied by default.
-- **FR-028**: Exactly three permissions MAY be granted, and only to the Messenger origin: **camera**
-  and **microphone** (for voice and video calls), and **notifications** (for message alerts). This is
-  the complete approved permission set.
+- **FR-028**: Exactly two permissions MAY be granted in the MVP, and only to the Messenger origin:
+  **camera** and **microphone** (for voice and video calls). Notifications are deferred with FR-055
+  and are not part of the MVP-approved permission set.
 - **FR-029**: The application MUST declare the macOS camera and microphone usage purposes required for
   the system prompts to appear.
-- **FR-030**: When macOS has denied camera, microphone, or notification access, the application MUST
-  explain this and offer a route to the relevant System Settings pane.
+- **FR-030**: When macOS has denied camera or microphone access, the application MUST explain this and
+  offer a route to the relevant System Settings pane. Notification permission handling is deferred.
 - **FR-031**: Any permission type not in FR-028 — including any introduced by future platform
   versions — MUST be denied without prompting the user.
 
-*Security impact*: Camera and microphone are the most invasive permissions in the product. Granting
-notifications additionally lets the site put text of its own choosing in front of the user outside the
-application window; the application passes that content through without reading it, but the site
-controls what is displayed. Enumerating the permitted set as exactly three, scoped to one origin, and
-denying unknown future permission types keeps the blast radius fixed as the platform evolves.
+*Security impact*: Camera and microphone are the most invasive permissions in the MVP. Notifications
+would additionally let the site put text of its own choosing in front of the user outside the
+application window, so that capability remains deferred. Enumerating the permitted set as exactly two,
+scoped to one origin, and denying unknown future permission types keeps the blast radius fixed as the
+platform evolves.
 
-*Constitutional note*: The constitution denies notifications by default but provides that "only
-permissions required by an approved capability may be allowed, and each MUST be listed with its
-justification." FR-028 is that approved list. No amendment is strictly required; recording the
-approved set in the constitution alongside the navigation allowlist is a recommended follow-up so
-both live in one place.
+*Constitutional note*: The constitution denies notifications by default and provides that only
+permissions required by an approved capability may be allowed. FR-028 is the MVP-approved list;
+notifications require a future capability specification and security review before they may be added.
 
 #### G. Downloads
 
@@ -515,19 +511,20 @@ they claim.
 
 #### L. Notifications and application lifecycle
 
-- **FR-055**: The application MUST deliver macOS notifications for messages the site reports, passing
-  the site's notification through without reading, parsing, storing, or logging its content.
-- **FR-056**: The application MUST show an unread count on the Dock icon, reflecting the count the
-  site itself reports. The count MUST NOT be derived by inspecting or scraping page content.
-- **FR-057**: Activating a notification MUST bring the application forward, reopening the main window
-  if it was closed.
+> **MVP deferral:** Site-delivered macOS notifications and the Dock badge are deferred from the
+> MVP following Phase 0 observations. They remain future work and MUST be specified and reviewed
+> together before implementation. The MVP continues to support the hide-not-destroy lifecycle,
+> but does not promise notification delivery or a Dock badge.
+
+- **FR-055**: DEFERRED. The application does not promise macOS message notifications in the MVP.
+- **FR-056**: DEFERRED. The application does not promise a Dock unread badge in the MVP.
+- **FR-057**: DEFERRED with FR-055. Notification click-to-focus is future work.
 - **FR-058**: Closing the main window MUST NOT quit the application. The application MUST keep running
-  and continue delivering notifications until the user explicitly quits.
+  until the user explicitly quits. Notification delivery is deferred from the MVP.
 - **FR-059**: Reactivating the application when no window is open MUST reopen the main window with the
   existing session and saved geometry, with no re-authentication.
-- **FR-060**: Quit MUST terminate the application fully and stop notification delivery.
-- **FR-061**: When macOS notification permission is denied, the application MUST continue functioning
-  normally without errors or retry loops.
+- **FR-060**: Quit MUST terminate the application fully.
+- **FR-061**: Notification permission handling is deferred with FR-055 and is not an MVP behavior.
 
 *Security impact*: Granting notifications lets the site deliver text of its own choosing to the system
 notification centre — content the application forwards but never inspects, which keeps FR-047 intact.
@@ -595,11 +592,9 @@ DMG. See Assumptions for the deferred alternative.
   Gatekeeper warning and no manual security override.
 - **SC-012**: A user can fully remove their session in a single menu action, after which no trace of
   the prior session remains on disk.
-- **SC-013**: A message sent to the signed-in account produces a macOS notification within 5 seconds
-  while the window is closed, and activating that notification restores the window to the relevant
-  conversation.
-- **SC-014**: The Dock unread badge matches the unread count shown by the site in 100% of checks, and
-  clears when all conversations are read.
+- **SC-013**: DEFERRED. Notification delivery and notification click-to-focus will be measured in the
+  future notification-and-badge phase.
+- **SC-014**: DEFERRED. Dock-badge derivation will be specified and measured in the same future phase.
 - **SC-015**: Closing the main window and reopening it from the Dock restores the session without
   re-authentication on 100% of attempts.
 
@@ -624,9 +619,9 @@ DMG. See Assumptions for the deferred alternative.
   flows have not yet been observed; see Dependencies.
 - **The user has a working Messenger account and network connectivity.** The application does not
   provide account creation, recovery, or troubleshooting.
-- **Notifications are in scope and background running is intended.** The application stays resident
-  after the window closes so notifications keep arriving. Closing the window is therefore not a form
-  of signing out; only Quit and Clear Session Data end session availability.
+- **Background running is intended.** The application stays resident after the window closes. Closing
+  the window is therefore not a form of signing out; only Quit and Clear Session Data end session
+  availability. Notifications and the Dock badge are deferred from the MVP.
 - **No launch-at-login and no menu bar item.** The application stays in the Dock when running. It does
   not add itself as a login item and does not present a menu bar extra — both were considered and are
   out of scope for the MVP.
@@ -635,10 +630,10 @@ DMG. See Assumptions for the deferred alternative.
 
 ## Dependencies
 
-> **Phase 0 feasibility spike is a blocking gate.** Three requirement groups below rest on
+> **Phase 0 feasibility spike is a blocking gate.** Two requirement groups below rest on
 > assumptions never observed against the live site: authentication challenge paths (FR-013, FR-040),
-> calls and their permission origins (FR-028, User Story 6), and notifications surviving a hidden
-> window (FR-055, FR-058). [spike.md](./spike.md) must record a GO or GO-WITH-AMENDMENTS decision
+> and calls and their permission origins (FR-028, User Story 6). [spike.md](./spike.md) must record a
+> GO or GO-WITH-AMENDMENTS decision
 > before production implementation begins. Amendments to this spec arising from the spike are the
 > expected outcome, not a failure.
 
@@ -652,10 +647,10 @@ DMG. See Assumptions for the deferred alternative.
   path has not been confirmed. If calls use a path outside the current allowlist, that path must be
   identified and added by amendment before User Story 6 can pass. This is a known risk to FR-028 and
   SC-010.
-- **Site-reported unread count.** FR-056 assumes the site exposes an unread count through a standard
-  web mechanism the application can observe without inspecting page content. If it does not, the Dock
-  badge cannot be delivered within the no-DOM-injection constraint and must be dropped from the MVP
-  rather than implemented by scraping. Notifications themselves are unaffected.
+- **Deferred notification-and-badge capability.** FR-055 through FR-057 and SC-013 through SC-014 are
+  deferred from the MVP. Before implementation, the future phase must specify notification permission,
+  site-delivered notification behavior, and any Dock-badge derivation together; Bell-count DOM
+  extraction is not permitted without an explicit security and constitution amendment.
 - **Apple Developer ID certificate and notarization credentials** are required before FR-052 can be
   satisfied and are not yet recorded.
 - **Camera and microphone availability** depends on macOS system permissions the application can
