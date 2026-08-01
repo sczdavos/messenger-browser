@@ -49,7 +49,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['.vite/**', 'out/**', 'node_modules/**'],
+    ignores: ['.vite/**', 'out/**', 'dist/**', 'node_modules/**'],
   },
   {
     files: ['**/*.{ts,tsx,js}'],
