@@ -83,3 +83,15 @@ future/optional work for this testing phase.
 ## License
 
 This project is currently private and unlicensed (`UNLICENSED`).
+
+## Disclaimer
+
+This project is 100% AI-coded and provided for experimental and testing purposes. It is an
+independent project and is not affiliated with, endorsed by, sponsored by, or otherwise connected
+with Facebook, Messenger, or Meta Platforms, Inc.
+
+Use this software at your own risk. It is provided without warranties of any kind. The authors and
+contributors accept no responsibility or liability for data loss, account issues, privacy or
+security incidents, service interruptions, system damage, or any other direct or indirect harm
+resulting from its use, to the maximum extent permitted by applicable law. Review the code and
+test it in an appropriate environment before relying on it.
