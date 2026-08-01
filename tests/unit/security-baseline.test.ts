@@ -15,6 +15,7 @@ describe('security baseline', () => {
       allowRunningInsecureContent: false,
       experimentalFeatures: false,
       webviewTag: false,
+      backgroundThrottling: true,
       partition: 'persist:messenger',
     });
     expect('preload' in HARDENED_REMOTE_WEB_PREFERENCES).toBe(false);
@@ -31,6 +32,12 @@ describe('security baseline', () => {
         mediaType: 'audio',
       }).granted,
     ).toBe(false);
+    expect(
+      evaluatePermission({
+        permission: 'notifications',
+        requestingOrigin: 'https://www.facebook.com',
+      }).granted,
+    ).toBe(true);
   });
 
   it('denies every unknown permission at the approved origin', () => {

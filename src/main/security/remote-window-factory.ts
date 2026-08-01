@@ -13,6 +13,8 @@ export const HARDENED_REMOTE_WEB_PREFERENCES = Object.freeze({
   allowRunningInsecureContent: false,
   experimentalFeatures: false,
   webviewTag: false,
+  // S-6 selected default throttling: lowest sufficient rung with acceptable idle cost.
+  backgroundThrottling: true,
   partition: 'persist:messenger',
 });
 

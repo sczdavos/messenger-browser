@@ -3,7 +3,9 @@ import type { PermissionName } from './types';
 export const PERMISSION_ORIGINS: ReadonlyMap<
   string,
   ReadonlySet<PermissionName>
-> = new Map([['https://www.facebook.com', new Set(['media'])]]);
+> = new Map([
+  ['https://www.facebook.com', new Set(['media', 'notifications'])],
+]);
 
 export function permittedPermissions(
   origin: string,

@@ -18,7 +18,7 @@ test('application menu matches the native contract', async () => {
         label: item.label,
         roles: item.submenu?.items.map((child) => {
           if (child.type === 'separator') return 'separator';
-          if (child.role === 'selectall') return 'selectAll';
+          if ((child.role as string) === 'selectall') return 'selectAll';
           return child.role ?? child.label;
         }),
       }));

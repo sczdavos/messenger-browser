@@ -45,7 +45,6 @@ test('permission policy denies unapproved capabilities', () => {
     'mediaKeySystem',
     'midi',
     'midiSysex',
-    'notifications',
     'openExternal',
     'pointerLock',
     'serial',

@@ -1,4 +1,5 @@
 import type { BrowserWindow } from 'electron';
+import { attachBadgeHandler } from '../features/badge';
 import { isInvalidSessionUrl } from '../features/errors';
 import { createRemoteWindow } from '../security/remote-window-factory';
 import { loadBounds, loadZoomLevel, saveBounds } from './bounds-store';
@@ -7,6 +8,7 @@ export const MESSENGER_URL = 'https://www.facebook.com/messages';
 
 export function createMainWindow(): BrowserWindow {
   const win = createRemoteWindow(MESSENGER_URL);
+  attachBadgeHandler(win);
   win.webContents.on('did-navigate', (_event, url) => {
     if (isInvalidSessionUrl(url)) win.show();
   });
