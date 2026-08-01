@@ -268,7 +268,7 @@ navigation and permission policy being enforced.
 
 - [X] T090 [US9] Implement Clear Session Data in `src/main/session/clear-session.ts` — destructive confirmation dialog defaulting to Cancel, then `clearStorageData()`, `clearCache()`, `clearAuthCache()`, badge reset, zoom reset, and navigation back to the canonical URL
 - [X] T091 [US9] Wire the Clear Session Data menu item in `src/main/features/menu.ts`
-- [ ] T092 [P] [US9] Write `tests/integration/clear-session.test.ts` asserting the partition directory holds no cookies or storage after clearing and that the sign-in flow returns
+- [X] T092 [P] [US9] Write `tests/integration/clear-session.test.ts` asserting the partition directory holds no cookies or storage after clearing and that the sign-in flow returns
 - [X] T093 [US9] Add the confirmation-dialog cancel case to the manual checklist in `quickstart.md`
 
 **Checkpoint**: Session removal is complete and reversible only by signing in again.
