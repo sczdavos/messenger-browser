@@ -1,10 +1,28 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.2.0 → 1.3.0 (2026-08-01)
-Bump rationale: MINOR. Adds bounded authentication and call-surface paths observed during the
-Phase 0 feasibility spike, and records the deliberate deferral of app-generated notifications and
-Dock-badge derivation to a separately reviewed capability.
+Version change: 1.3.0 → 1.4.0 (2026-08-01)
+Bump rationale: MINOR. Approves the site-delivered notification pass-through and title-derived
+Dock badge, records the owner-approved icon exception, and documents the native media-settings
+route.
+
+Modified in 1.4.0:
+- Notification capability — Facebook may request notifications; the application passes content
+  through without reading, parsing, storing, or synthesizing it.
+- Dock badge — may use only the leading document-title count, capped at 999; Bell-count DOM
+  extraction remains prohibited.
+- Branding — the owner approved the supplied MessengerBrowser icon as an explicit exception to
+  the visual-identity restriction.
+- Media permissions — denied camera/microphone access may open the corresponding Apple privacy
+  pane through the native `open` command after explicit user approval.
+
+Resolved in 1.4.0:
+- TODO(DEFERRED_NOTIFICATION_BADGE)
+- TODO(APP_ICON)
+
+Follow-up TODOs:
+- TODO(SIGNING_IDENTITY): Supply an Apple Developer ID identity and notarization Keychain profile
+  before distribution.
 
 Modified in 1.3.0:
 - Navigation allowlist — added `/groupcall/` as an observed Messenger call surface.
@@ -17,10 +35,6 @@ Modified in 1.3.0:
 Resolved in 1.3.0:
 - Phase 0 S-6 default-throttling run survived approximately 11.8 hours without a crash; the
   default-throttling configuration is the selected MVP rung.
-
-Follow-up TODOs:
-- TODO(DEFERRED_NOTIFICATION_BADGE): Define and separately approve generic app-generated
-  notifications and any Dock-badge calculation before implementing either capability.
 
 -----------------------------------------------------------------------------
 Prior: 1.1.0 → 1.2.0 (2026-07-29)
@@ -102,16 +116,12 @@ Added sections:
 Removed sections: none (all template slots were filled, none dropped).
 
 Deferred TODOs (as of 1.1.0):
-- TODO(APP_ICON): The application icon and visual identity are not yet designed. Principle XIII
-  approves the "MessengerBrowser" wordmark only; the icon MUST NOT imitate Meta's marks.
 - TODO(AUTH_PATHS): Primary sign-in and 2FA paths are specified as of 1.2.0. Still open: whether
   account-checkpoint and password-recovery challenge paths must also be reachable in-app. To be
   observed in a real sign-in and added by amendment, not guessed.
 - TODO(MESSENGER_PATHS): The Messenger path allowlist currently covers /messages and
   /messenger_media. Additional Messenger surfaces discovered in use are to be added by
   amendment to the allowlist table.
-- TODO(DEFERRED_NOTIFICATION_BADGE): App-generated notifications and Dock-badge calculation are
-  deferred from the MVP and must be reviewed together before implementation.
 - TODO(SIGNING_IDENTITY): Apple Developer ID signing identity and notarization Team ID are
   not yet recorded; required before the first distributable build under Principle XIV.
 -->
@@ -119,8 +129,8 @@ Deferred TODOs (as of 1.1.0):
 # MessengerBrowser Constitution
 
 <!--
-"MessengerBrowser" is the approved product name; see Principle XIII → Recorded Approvals.
-The approval covers the wordmark only, not the icon or visual identity — see TODO(APP_ICON).
+"MessengerBrowser" and the supplied application icon are approved project branding; see
+Principle XIII → Recorded Approvals.
 -->
 
 The project builds a security-first, macOS-only desktop application that wraps the official
@@ -288,6 +298,10 @@ use, recolor, or approximate Messenger's lightning-bolt-in-speech-bubble mark or
 mark, and MUST NOT use Messenger's signature brand gradient in a mark-like arrangement. The
 literal strings "Facebook Messenger" and "Facebook" MUST NOT appear as product branding.
 
+**Owner-approved exception (2026-08-01):** the supplied `assets/MessengerBrowser-Icons/MessengerBrowser.icns`
+asset is approved for this application despite its speech-bubble and blue-gradient treatment. It
+is the owner-provided MessengerBrowser icon and is not to be altered or presented as a Meta mark.
+
 *Rationale*: Trademark exposure is a project-ending risk that no technical control mitigates.
 Descriptive naming is defensible; visual imitation is where confusion claims actually originate,
 so the approval is deliberately limited to the wordmark.
@@ -395,6 +409,10 @@ that a subresource fetch from `fbcdn.net` is never routed externally.
 allowlist of safe schemes (`https:`, `http:`, `mailto:`, `tel:`). Any other scheme — notably
 `javascript:`, `data:`, `file:`, and custom application schemes — MUST be dropped, never passed
 to `shell.openExternal`.
+
+The two explicitly approved Apple privacy-pane URLs used for camera and microphone guidance are
+handled only by the native `open` command after a user-selected "Open Settings" action; they are
+not accepted by or passed through the general external-browser sink.
 
 **Authentication paths.** The authentication entries above are enumerated, not open-ended. They
 MUST live in the same single module as the Messenger entries, MUST NOT be widened to a

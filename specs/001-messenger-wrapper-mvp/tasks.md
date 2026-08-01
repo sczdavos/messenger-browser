@@ -223,7 +223,7 @@ navigation and permission policy being enforced.
 - [X] T077 [US6] Populate `src/main/security/policy/permission-origins.ts` with the exact origin set from spike S-5 findings — each entry justified in a comment, and **never** derived from navigation-allowlist membership
 - [X] T078 [US6] Add any call-surface paths from spike S-3 to `src/main/security/policy/navigation-allowlist.ts`, with the corresponding constitution amendment merged first
 - [X] T079 [US6] Add `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` to the Info.plist configuration in `forge.config.ts`
-- [ ] T080 [US6] Implement TCC status handling in `src/main/features/dialogs.ts` using `systemPreferences.getMediaAccessStatus` and `askForMediaAccess`, showing a native dialog with an "Open Settings" route when access was previously denied and noting that a restart is required for a TCC change to take effect
+- [X] T080 [US6] Implement TCC status handling in `src/main/features/dialogs.ts` using `systemPreferences.getMediaAccessStatus` and `askForMediaAccess`, showing a native dialog with an "Open Settings" route when access was previously denied and noting that a restart is required for a TCC change to take effect
 - [X] T081 [P] [US6] Write `tests/integration/permissions.test.ts` asserting the check handler decides correctly when `webContents` is `null`, that both handlers are registered on `persist:messenger`, and that every permission outside the approved set is denied
 
 **Checkpoint**: Calls work; permission denial produces guidance rather than a hang.

@@ -45,13 +45,36 @@ export function attachPermissionHandlers(ses: Session): void {
       const origin = requestOrigin(details);
       const mediaTypes =
         'mediaTypes' in details ? details.mediaTypes : undefined;
-      callback(
-        evaluatePermission({
-          permission,
-          requestingOrigin: normalizeOrigin(origin) ?? origin,
-          ...(mediaTypes === undefined ? {} : { mediaTypes }),
-        }).granted,
+      const requestingOrigin = normalizeOrigin(origin) ?? origin;
+      const grantedByPolicy = evaluatePermission({
+        permission,
+        requestingOrigin,
+        ...(mediaTypes === undefined ? {} : { mediaTypes }),
+      }).granted;
+      if (!grantedByPolicy || permission !== 'media') {
+        callback(grantedByPolicy);
+        return;
+      }
+      const kinds = (mediaTypes ?? []).filter(
+        (type): type is 'audio' | 'video' =>
+          type === 'audio' || type === 'video',
       );
+      void Promise.all([
+        import('electron'),
+        import('../features/dialogs'),
+      ]).then(([{ BrowserWindow }, { ensureMediaAccess }]) => {
+        const window = _webContents
+          ? BrowserWindow.fromWebContents(_webContents)
+          : null;
+        return ensureMediaAccess(
+          window,
+          kinds.includes('video') && kinds.includes('audio')
+            ? ['camera', 'microphone']
+            : kinds.includes('video')
+              ? ['camera']
+              : ['microphone'],
+        ).then(callback);
+      });
     },
   );
 
