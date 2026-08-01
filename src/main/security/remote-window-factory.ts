@@ -47,8 +47,11 @@ export function createAboutWindow(parent: BrowserWindow): BrowserWindow {
     minimizable: false,
     maximizable: false,
     parent,
-    modal: true,
+    modal: false,
     show: false,
+    frame: true,
+    closable: true,
+    titleBarStyle: 'default',
     title: 'About MessengerBrowser',
     webPreferences: {
       sandbox: true,

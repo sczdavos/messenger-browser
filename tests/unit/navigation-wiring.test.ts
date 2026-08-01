@@ -78,10 +78,10 @@ describe('navigation enforcement wiring', () => {
     expect(handler({ url: 'nullblank' }).action).toBe('allow');
   });
 
-  it('does not allow a generic blank popup', () => {
+  it('allows a generic blank call placeholder without allowing it as navigation', () => {
     const { webContents } = createHarness();
     const handler = webContents.setWindowOpenHandler.mock
       .calls[0]![0] as (details: { url: string }) => { action: string };
-    expect(handler({ url: 'about:blank' }).action).toBe('deny');
+    expect(handler({ url: 'about:blank' }).action).toBe('allow');
   });
 });

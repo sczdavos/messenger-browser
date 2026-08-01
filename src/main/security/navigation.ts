@@ -9,7 +9,10 @@ const MESSENGER_HOME = 'https://www.facebook.com/messages';
 const navigationSessions = new WeakSet<Session>();
 
 function isObservedCallPlaceholder(url: string): boolean {
-  return url === 'nullblank';
+  // Facebook has used both values for the inert first step of its call popup.
+  // The blank document itself is not an allowlist match; its next navigation
+  // is still enforced by the normal navigation handlers.
+  return url === 'nullblank' || url === 'about:blank';
 }
 
 function handleNavigation(

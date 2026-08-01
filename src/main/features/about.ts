@@ -48,6 +48,13 @@ export function showAbout(window: BrowserWindow): void {
   aboutWindow.once('closed', () => {
     aboutWindow = null;
   });
+  aboutWindow.webContents.on('before-input-event', (event, input) => {
+    const isCloseShortcut =
+      (input.meta && input.key.toLowerCase() === 'w') || input.key === 'Escape';
+    if (!isCloseShortcut) return;
+    event.preventDefault();
+    aboutWindow?.close();
+  });
   void aboutWindow
     .loadURL(
       `data:text/html;charset=utf-8,${encodeURIComponent(aboutMarkup(app.getVersion()))}`,
