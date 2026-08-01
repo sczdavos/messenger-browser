@@ -1,20 +1,31 @@
 # MessengerBrowser
 
-MessengerBrowser is an independent, security-hardened macOS window around the official Facebook
-Messenger web experience. It injects no scripts, uses no Messenger selectors or private APIs, and
-depends on Meta's web client remaining available.
+MessengerBrowser is a security-hardened macOS wrapper around the official Facebook Messenger web
+experience. It keeps Messenger focused in its own application window while routing non-Messenger
+destinations to the system browser.
 
-## Known limitations
+## Features
 
-- Site changes can alter authentication, Messenger, call, or navigation paths. The application
-  surfaces these as ordinary page failures or an explicit blocked-navigation message; new paths
-  require a reviewed allowlist amendment.
-- The unread badge depends on a leading count in the document title. If Meta changes that title
-  format, the badge silently disappears rather than inspecting page content.
-- Notifications are passed through from the site. MessengerBrowser does not read, filter, store,
-  or synthesize notification content. Electron 43 requires a code-signed macOS app for native
-  notifications; unsigned testing builds will not display them until signing is enabled.
-- Calls depend on macOS camera and microphone permissions and Meta's current call surface.
+- Facebook Messenger at `facebook.com/messages`.
+- Persistent sign-in session with an explicit Clear Session Data command.
+- Strict navigation and permission allowlists.
+- Voice and video calls using macOS camera and microphone permissions.
+- Native save dialogs for downloads; downloaded files are never opened automatically.
+- Native menus, zoom persistence, window-state persistence, and an About window.
+- Apple Silicon (`arm64`) macOS package.
+
+The application does not inject scripts, inspect message content, copy credentials or cookies, or
+use private Messenger APIs.
+
+## Installation
+
+Download the latest `MessengerBrowser-*-arm64.dmg` from the GitHub Releases page, open it, and drag
+MessengerBrowser to Applications.
+
+The current testing builds are intentionally unsigned. On first launch, macOS may require
+Control-clicking the application, choosing **Open**, and confirming **Open** in the warning dialog.
+These builds are for a small testing group and require an Apple Silicon Mac running macOS 15 or
+newer.
 
 ## Development
 
@@ -23,15 +34,52 @@ npm ci
 npm run typecheck
 npm run lint
 npm test
-npm run build:main
 npm run test:integration
+npm start
 ```
 
-The packaged application is arm64-only. For the current small testing group, it is intentionally
-distributed unsigned; macOS may require an explicit Open/Allow action on first launch. Apple
-Developer signing, notarization, and clean-Mac Gatekeeper verification are future/optional release
-work. When enabled, signing requires `MESSENGER_BROWSER_SIGNING_IDENTITY` and notarization requires
-the Keychain profile named by `MESSENGER_BROWSER_NOTARY_PROFILE` (default: `messengerbrowser-notary`).
+Build the application bundle:
 
-Electron 43 reaches end of life on 2027-01-05. Before shipping after that date, upgrade Electron,
-rerun the security and integration suites, and complete a constitutional re-audit.
+```bash
+npm run package
+```
+
+Build the unsigned DMG:
+
+```bash
+npm run make
+```
+
+The DMG is written to `out/make/`. Build output, dependencies, test artifacts, and local tool
+configuration are excluded from Git.
+
+## Known limitations
+
+- MessengerBrowser depends on Meta's current web client. Site changes can alter authentication,
+  messaging, calls, or navigation paths.
+- The unread Dock badge depends on a leading count in the document title. If Meta changes that
+  title format, the badge disappears rather than inspecting page content.
+- Native macOS notifications are unavailable in the current unsigned Electron 43 testing builds;
+  Electron requires code signing for notification delivery. Signing and notarization are future
+  release work.
+- The application is arm64-only and has no automatic update mechanism.
+
+## Security and privacy
+
+Remote content runs without Node.js integration, preload scripts, or unrestricted IPC. Navigation,
+permissions, popups, redirects, downloads, and session persistence are handled by the main process
+under the project's allowlists and security policy.
+
+## Distribution notes
+
+For a signed release, configure:
+
+- `MESSENGER_BROWSER_SIGNING_IDENTITY` for the Apple Developer ID identity.
+- `MESSENGER_BROWSER_NOTARY_PROFILE` for the notarization Keychain profile.
+
+Signed release verification, Gatekeeper validation, and clean-Mac installation testing remain
+future/optional work for this testing phase.
+
+## License
+
+This project is currently private and unlicensed (`UNLICENSED`).
