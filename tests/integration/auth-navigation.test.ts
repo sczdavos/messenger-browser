@@ -20,4 +20,10 @@ test.describe('authentication navigation policy', () => {
       'open-external',
     );
   });
+
+  test('keeps the observed call surface in-app', () => {
+    expect(decide('https://www.facebook.com/groupcall/ROOM:123/').action).toBe(
+      'allow-in-app',
+    );
+  });
 });

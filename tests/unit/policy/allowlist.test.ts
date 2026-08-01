@@ -6,6 +6,7 @@ describe('navigation policy', () => {
     'https://www.facebook.com/messages',
     'https://facebook.com/messages/t/123',
     'https://www.facebook.com/messenger_media/?attachment_id=1',
+    'https://www.facebook.com/groupcall/ROOM:123/',
     'https://www.facebook.com/login.php?next=%2Fmessages',
     'https://www.facebook.com/two_factor/authentication/',
     'https://www.facebook.com/privacy/consent/',

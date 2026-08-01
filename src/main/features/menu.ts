@@ -1,13 +1,7 @@
-import {
-  app,
-  BrowserWindow,
-  dialog,
-  Menu,
-  session,
-  type MenuItemConstructorOptions,
-} from 'electron';
+import { BrowserWindow, Menu, type MenuItemConstructorOptions } from 'electron';
 import { decide } from '../security/policy';
-import { messengerSession } from '../session/partition';
+import { showAbout } from './about';
+import { requestClearSession } from '../session/clear-session';
 import { loadZoomLevel, saveZoomLevel } from '../window/bounds-store';
 
 export const MESSENGER_HOME = 'https://www.facebook.com/messages';
@@ -33,33 +27,6 @@ function historyTargetIsAllowed(
   );
 }
 
-function clearSessionData(window: BrowserWindow): void {
-  void dialog
-    .showMessageBox(window, {
-      type: 'warning',
-      buttons: ['Cancel', 'Clear Session Data'],
-      defaultId: 0,
-      cancelId: 0,
-      title: 'Clear Session Data',
-      message: 'Clear Messenger session data?',
-      detail: 'You will need to sign in again.',
-    })
-    .then(({ response }) => {
-      if (response !== 1) return;
-      const messenger = messengerSession();
-      return Promise.all([
-        messenger.clearStorageData(),
-        messenger.clearCache(),
-        session.defaultSession.clearAuthCache(),
-      ]).then(() => {
-        app.setBadgeCount(0);
-        window.webContents.setZoomLevel(0);
-        saveZoomLevel(0);
-        void window.loadURL(MESSENGER_HOME);
-      });
-    });
-}
-
 export function buildApplicationMenu(provider: WindowProvider): Menu {
   const isMac = process.platform === 'darwin';
   const template: MenuItemConstructorOptions[] = [
@@ -70,20 +37,14 @@ export function buildApplicationMenu(provider: WindowProvider): Menu {
           label: 'About MessengerBrowser',
           click: () => {
             const window = focusedWindow(provider);
-            if (window) {
-              void dialog.showMessageBox(window, {
-                title: 'About MessengerBrowser',
-                message: 'MessengerBrowser',
-                detail: 'A focused desktop window for Facebook Messenger.',
-              });
-            }
+            if (window) showAbout(window);
           },
         },
         {
           label: 'Clear Session Data…',
           click: () => {
             const window = focusedWindow(provider);
-            if (window) clearSessionData(window);
+            if (window) requestClearSession(window);
           },
         },
         { type: 'separator' },

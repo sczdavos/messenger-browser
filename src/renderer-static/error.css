@@ -1,0 +1,33 @@
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+  background: #17181a;
+  color: #f5f5f7;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+}
+
+main {
+  max-width: 32rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+p {
+  color: #b8b8bd;
+}
+
+a {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  background: #2f80ed;
+  color: white;
+  text-decoration: none;
+}

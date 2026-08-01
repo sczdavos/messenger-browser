@@ -4,6 +4,7 @@ export const PERMISSION_ORIGINS: ReadonlyMap<
   string,
   ReadonlySet<PermissionName>
 > = new Map([
+  // S-5 observed stable media and notification requests from Facebook only.
   ['https://www.facebook.com', new Set(['media', 'notifications'])],
 ]);
 

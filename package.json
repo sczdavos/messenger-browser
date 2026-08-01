@@ -3,7 +3,7 @@
   "productName": "MessengerBrowser",
   "version": "0.1.0",
   "description": "A hardened macOS wrapper for Facebook Messenger.",
-  "main": ".vite/build/main.js",
+  "main": ".vite/build/main.cjs",
   "author": "",
   "license": "UNLICENSED",
   "type": "module",

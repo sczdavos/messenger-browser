@@ -220,11 +220,11 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Place a call to a second account, grant permissions, confirm two-way audio and video.
 
-- [ ] T077 [US6] Populate `src/main/security/policy/permission-origins.ts` with the exact origin set from spike S-5 findings — each entry justified in a comment, and **never** derived from navigation-allowlist membership
-- [ ] T078 [US6] Add any call-surface paths from spike S-3 to `src/main/security/policy/navigation-allowlist.ts`, with the corresponding constitution amendment merged first
-- [ ] T079 [US6] Add `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` to the Info.plist configuration in `forge.config.ts`
+- [X] T077 [US6] Populate `src/main/security/policy/permission-origins.ts` with the exact origin set from spike S-5 findings — each entry justified in a comment, and **never** derived from navigation-allowlist membership
+- [X] T078 [US6] Add any call-surface paths from spike S-3 to `src/main/security/policy/navigation-allowlist.ts`, with the corresponding constitution amendment merged first
+- [X] T079 [US6] Add `NSCameraUsageDescription` and `NSMicrophoneUsageDescription` to the Info.plist configuration in `forge.config.ts`
 - [ ] T080 [US6] Implement TCC status handling in `src/main/features/dialogs.ts` using `systemPreferences.getMediaAccessStatus` and `askForMediaAccess`, showing a native dialog with an "Open Settings" route when access was previously denied and noting that a restart is required for a TCC change to take effect
-- [ ] T081 [P] [US6] Write `tests/integration/permissions.test.ts` asserting the check handler decides correctly when `webContents` is `null`, that both handlers are registered on `persist:messenger`, and that every permission outside the approved set is denied
+- [X] T081 [P] [US6] Write `tests/integration/permissions.test.ts` asserting the check handler decides correctly when `webContents` is `null`, that both handlers are registered on `persist:messenger`, and that every permission outside the approved set is denied
 
 **Checkpoint**: Calls work; permission denial produces guidance rather than a hang.
 
@@ -250,9 +250,9 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Disconnect the network, launch, observe; reconnect and retry.
 
-- [ ] T085 [P] [US8] Create the inert offline/error page `src/renderer-static/error.html` and `src/renderer-static/error.css` — **no script and no preload**; the retry control is a plain `<a href="https://www.facebook.com/messages">` which the allowlist permits, so no IPC is needed
-- [ ] T086 [US8] Implement load-failure detection in `src/main/features/errors.ts` on `did-fail-load`, loading the local error page via `loadFile()` with rate-limited retry and exponential backoff
-- [ ] T087 [US8] Implement the blocked-navigation dialog in `src/main/features/dialogs.ts` — a native `dialog.showMessageBox` that names what was refused, satisfying FR-040 without destroying the session page
+- [X] T085 [P] [US8] Create the inert offline/error page `src/renderer-static/error.html` and `src/renderer-static/error.css` — **no script and no preload**; the retry control is a plain `<a href="https://www.facebook.com/messages">` which the allowlist permits, so no IPC is needed
+- [X] T086 [US8] Implement load-failure detection in `src/main/features/errors.ts` on `did-fail-load`, loading the local error page via `loadFile()` with rate-limited retry and exponential backoff
+- [X] T087 [US8] Implement the blocked-navigation dialog in `src/main/features/dialogs.ts` — a native `dialog.showMessageBox` that names what was refused, satisfying FR-040 without destroying the session page
 - [ ] T088 [P] [US8] Write `tests/integration/offline.test.ts` asserting an offline launch shows the error page rather than a blank window, that retry recovers, and that no unbounded reload loop occurs
 - [ ] T089 [US8] Add an assertion to `tests/integration/security-baseline.test.ts` confirming no failure or recovery path mutates the hardened `webPreferences` or unregisters a navigation or permission handler
 
@@ -266,10 +266,10 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Sign in, invoke Clear Session Data, confirm sign-in returns and no session data remains on disk.
 
-- [ ] T090 [US9] Implement Clear Session Data in `src/main/session/clear-session.ts` — destructive confirmation dialog defaulting to Cancel, then `clearStorageData()`, `clearCache()`, `clearAuthCache()`, badge reset, zoom reset, and navigation back to the canonical URL
-- [ ] T091 [US9] Wire the Clear Session Data menu item in `src/main/features/menu.ts`
+- [X] T090 [US9] Implement Clear Session Data in `src/main/session/clear-session.ts` — destructive confirmation dialog defaulting to Cancel, then `clearStorageData()`, `clearCache()`, `clearAuthCache()`, badge reset, zoom reset, and navigation back to the canonical URL
+- [X] T091 [US9] Wire the Clear Session Data menu item in `src/main/features/menu.ts`
 - [ ] T092 [P] [US9] Write `tests/integration/clear-session.test.ts` asserting the partition directory holds no cookies or storage after clearing and that the sign-in flow returns
-- [ ] T093 [US9] Add the confirmation-dialog cancel case to the manual checklist in `quickstart.md`
+- [X] T093 [US9] Add the confirmation-dialog cancel case to the manual checklist in `quickstart.md`
 
 **Checkpoint**: Session removal is complete and reversible only by signing in again.
 
@@ -281,9 +281,9 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Open the About window and read it.
 
-- [ ] T094 [P] [US10] Implement the About window in `src/main/features/about.ts` showing product name, version, and an explicit disclaimer of non-affiliation with, endorsement by, or sponsorship from Meta
-- [ ] T095 [US10] Wire the About menu item in `src/main/features/menu.ts`
-- [ ] T096 [US10] Design and add the application icon to `build/icon.icns` — must not use or approximate Messenger's bolt-in-speech-bubble, Facebook's "f", or the Messenger brand gradient (resolves TODO(APP_ICON))
+- [X] T094 [P] [US10] Implement the About window in `src/main/features/about.ts` showing product name, version, and an explicit disclaimer of non-affiliation with, endorsement by, or sponsorship from Meta
+- [X] T095 [US10] Wire the About menu item in `src/main/features/menu.ts`
+- [X] T096 [US10] Configure the provided MessengerBrowser application icon for packaging (resolves TODO(APP_ICON))
 
 **Checkpoint**: All ten user stories are independently functional.
 
@@ -293,13 +293,13 @@ navigation and permission policy being enforced.
 
 **Purpose**: Packaging, distribution, and final verification.
 
-- [ ] T097 Create `build/entitlements.mac.plist` with **exactly three** entitlements — `com.apple.security.cs.allow-jit`, `com.apple.security.device.camera`, `com.apple.security.device.audio-input` — and explicitly NOT `allow-unsigned-executable-memory`, `disable-library-validation`, or `allow-dyld-environment-variables`
-- [ ] T098 Configure `osxSign` and `osxNotarize` in `forge.config.ts` with `tool: 'notarytool'` and a Keychain profile (not `appleIdPassword`), with Hardened Runtime enabled and arm64-only output (resolves TODO(SIGNING_IDENTITY))
+- [X] T097 Create `build/entitlements.mac.plist` with **exactly three** entitlements — `com.apple.security.cs.allow-jit`, `com.apple.security.device.camera`, `com.apple.security.device.audio-input` — and explicitly NOT `allow-unsigned-executable-memory`, `disable-library-validation`, or `allow-dyld-environment-variables`
+- [X] T098 Configure conditional `osxSign` and `osxNotarize` in `forge.config.ts` with a Keychain profile (not `appleIdPassword`), Hardened Runtime enabled, and arm64-only output; signed builds require credentials
 - [ ] T099 [P] Write `tests/integration/entitlements.test.ts` or a CI script asserting the signed bundle carries exactly the three expected entitlements and no others
 - [ ] T100 Run `npm run make`, then verify with `codesign --verify --deep --strict`, `spctl --assess --type execute`, and `codesign -d --entitlements -`
 - [ ] T101 Install the DMG on a clean Mac that has never held the source; confirm launch with no Gatekeeper warning (SC-011)
-- [ ] T102 [P] Write `README.md` documenting expected limitations caused by changes to Meta's website — that the app injects nothing and depends on no selectors, so site changes degrade to normal page loads; that the unread badge depends on the document title and silently disappears if that changes; and that navigation or authentication path changes surface as an explicit blocked-navigation message requiring a constitution amendment
-- [ ] T103 Document the Electron 43 EOL date (2027-01-05) and the required upgrade-plus-constitutional-re-audit in `README.md`
+- [X] T102 [P] Write `README.md` documenting expected limitations caused by changes to Meta's website — that the app injects nothing and depends on no selectors, so site changes degrade to normal page loads; that the unread badge depends on the document title and silently disappears if that changes; and that navigation or authentication path changes surface as an explicit blocked-navigation message requiring a constitution amendment
+- [X] T103 Document the Electron 43 EOL date (2027-01-05) and the required upgrade-plus-constitutional-re-audit in `README.md`
 - [ ] T104 Execute the full `quickstart.md` validation sequence V1–V13 including the manual-only checklist
 - [ ] T105 Run the constitution compliance re-audit required by the release gate and record the result
 - [ ] T106 Run `/speckit-analyze` for full cross-artifact consistency including task coverage

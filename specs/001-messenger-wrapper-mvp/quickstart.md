@@ -212,6 +212,7 @@ before every release:
 
 - [ ] Download save panel appears; cancel writes nothing
 - [ ] Clear Session Data confirmation dialog; cancel preserves the session
+- [ ] Clear Session Data confirmation dialog; cancel leaves the session and window unchanged
 - [ ] Cut / copy / paste inside the remote page's text fields
 - [ ] macOS camera and microphone permission prompts
 - [ ] About window states independence from Meta and uses no Meta marks

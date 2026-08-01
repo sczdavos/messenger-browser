@@ -1,14 +1,23 @@
-import type { Session, WebContents } from 'electron';
+import { BrowserWindow, type Session, type WebContents } from 'electron';
 import { openExternalUrl } from './external-open';
 import { decide } from './policy';
+import { showBlockedNavigation } from '../features/dialogs';
 
 type PopupOptions = () => Electron.BrowserWindowConstructorOptions;
 
-function handleNavigation(rawUrl: string, cancel: () => void): void {
+function handleNavigation(
+  rawUrl: string,
+  cancel: () => void,
+  webContents: WebContents,
+): void {
   const decision = decide(rawUrl);
   if (decision.action === 'allow-in-app') return;
   cancel();
   if (decision.action === 'open-external') void openExternalUrl(rawUrl);
+  if (decision.action === 'block') {
+    const win = BrowserWindow.fromWebContents(webContents);
+    if (win) showBlockedNavigation(win, rawUrl, decision.reason);
+  }
 }
 
 export function attachNavigationHandlers(
@@ -26,10 +35,10 @@ export function attachNavigationHandlers(
   });
 
   webContents.on('will-navigate', (event, url) => {
-    handleNavigation(url, () => event.preventDefault());
+    handleNavigation(url, () => event.preventDefault(), webContents);
   });
   webContents.on('will-redirect', (event, url) => {
-    handleNavigation(url, () => event.preventDefault());
+    handleNavigation(url, () => event.preventDefault(), webContents);
   });
 
   ses.webRequest.onBeforeRequest(
