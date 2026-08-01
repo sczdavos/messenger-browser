@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { _electron as electron } from 'playwright';
 import { resolve } from 'node:path';
 import { evaluatePermission } from '../../src/main/security/permissions-policy';
+import { decide } from '../../src/main/security/policy';
 
 test('remote renderer realizes the hardened baseline', async () => {
   const electronApp = await electron.launch({
@@ -61,4 +62,15 @@ test('permission policy denies unapproved capabilities', () => {
       }).granted,
     ).toBe(false);
   }
+});
+
+test('navigation policy keeps remote requests bounded', () => {
+  expect(decide('https://www.facebook.com/messages').action).toBe(
+    'allow-in-app',
+  );
+  expect(decide('https://static.xx.fbcdn.net/assets/app.js').action).toBe(
+    'open-external',
+  );
+  expect(decide('https://www.facebook.com/home').action).toBe('open-external');
+  expect(decide('https://evil.example/collect').action).toBe('open-external');
 });

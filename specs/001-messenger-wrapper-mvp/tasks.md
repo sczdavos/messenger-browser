@@ -135,11 +135,11 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Launch on a clean profile, sign in with a real account including 2FA, send a message to a test conversation, confirm delivery.
 
-- [ ] T049 [P] [US1] Write `tests/integration/startup.test.ts` asserting the app opens exactly one window at `https://www.facebook.com/messages` and no second window appears
-- [ ] T050 [US1] Verification only — confirm the S-2 authentication paths authored in T027 are present in `src/main/security/policy/auth-allowlist.ts` and covered by allowed vectors in `tests/unit/policy/allowlist.test.ts`. Do not add paths here; T027 is the sole author
-- [ ] T051 [US1] Implement popup handling in `src/main/security/navigation.ts`: `setWindowOpenHandler` runs `decide()`, returns `{action:'allow', overrideBrowserWindowOptions: hardenedPopupOptions()}` for allowlisted targets and `{action:'deny'}` otherwise; a `did-create-window` listener calls `attachRemoteHandlers` on the window Electron creates, so popups carry identical hardened preferences and the same session
-- [ ] T052 [P] [US1] Write `tests/integration/auth-navigation.test.ts` asserting each authentication path loads in-app and a non-allowlisted path is refused
-- [ ] T053 [US1] Add a privacy-audit assertion to `tests/integration/security-baseline.test.ts` confirming the application originates no network request to any host outside the Messenger origins and Meta CDNs
+- [X] T049 [P] [US1] Write `tests/integration/startup.test.ts` asserting the app opens exactly one window at `https://www.facebook.com/messages` and no second window appears
+- [X] T050 [US1] Verification only — confirm the S-2 authentication paths authored in T027 are present in `src/main/security/policy/auth-allowlist.ts` and covered by allowed vectors in `tests/unit/policy/allowlist.test.ts`. Do not add paths here; T027 is the sole author
+- [X] T051 [US1] Implement popup handling in `src/main/security/navigation.ts`: `setWindowOpenHandler` runs `decide()`, returns `{action:'allow', overrideBrowserWindowOptions: hardenedPopupOptions()}` for allowlisted targets and `{action:'deny'}` otherwise; a `did-create-window` listener calls `attachRemoteHandlers` on the window Electron creates, so popups carry identical hardened preferences and the same session
+- [X] T052 [P] [US1] Write `tests/integration/auth-navigation.test.ts` asserting each authentication path loads in-app and a non-allowlisted path is refused
+- [X] T053 [US1] Add a privacy-audit assertion to `tests/integration/security-baseline.test.ts` confirming the application originates no network request to any host outside the Messenger origins and Meta CDNs
 
 **Checkpoint**: Sign-in completes fully in-app; messages send and receive. MVP is demonstrable.
 
