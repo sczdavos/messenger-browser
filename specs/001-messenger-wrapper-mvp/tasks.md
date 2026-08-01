@@ -166,10 +166,10 @@ navigation and permission policy being enforced.
 
 **Independent Test**: From a conversation with mixed links, click each and confirm routing.
 
-- [ ] T058 [P] [US3] Write `tests/integration/navigation.test.ts` asserting non-Messenger Facebook destinations, link shims, and third-party links are routed externally and never navigate the window
-- [ ] T059 [US3] Add a redirect-chain test to `tests/integration/navigation.test.ts` asserting `login.php?next=<external>` is cancelled at the offending hop by the `will-redirect` layer, with the first hop having been allowed
-- [ ] T060 [US3] Add a subresource test to `tests/integration/navigation.test.ts` asserting fetches from `fbcdn.net` and `facebook.net` are never cancelled and never routed externally
-- [ ] T061 [US3] Verify unsafe schemes are dropped in `src/main/security/external-open.ts` and never reach `shell.openExternal`, covered by `tests/unit/policy/external-schemes.test.ts`
+- [X] T058 [P] [US3] Write `tests/integration/navigation.test.ts` asserting non-Messenger Facebook destinations, link shims, and third-party links are routed externally and never navigate the window
+- [X] T059 [US3] Add a redirect-chain test to `tests/integration/navigation.test.ts` asserting `login.php?next=<external>` is cancelled at the offending hop by the `will-redirect` layer, with the first hop having been allowed
+- [X] T060 [US3] Add a subresource test to `tests/integration/navigation.test.ts` asserting fetches from `fbcdn.net` and `facebook.net` are never cancelled and never routed externally
+- [X] T061 [US3] Verify unsafe schemes are dropped in `src/main/security/external-open.ts` and never reach `shell.openExternal`, covered by `tests/unit/policy/external-schemes.test.ts`
 
 **Checkpoint**: All link routing correct, including the hostile and redirect cases.
 
