@@ -28,9 +28,16 @@ const config: ForgeConfig = {
     }),
   ],
   hooks: {
-    packageAfterCopy: async (_config, buildPath) => {
-      if (process.platform !== 'darwin') return;
-      void buildPath;
+    packageAfterCopy: async (
+      _config,
+      _buildPath,
+      _electronVersion,
+      _platform,
+      arch,
+    ) => {
+      if (arch !== 'arm64') {
+        throw new Error('MessengerBrowser supports arm64 packaging only.');
+      }
     },
   },
 };
