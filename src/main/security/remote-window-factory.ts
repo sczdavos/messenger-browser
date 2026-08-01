@@ -54,6 +54,8 @@ export function createRemoteWindow(initialUrl: string): BrowserWindow {
     webPreferences: HARDENED_REMOTE_WEB_PREFERENCES,
   });
   attachRemoteHandlers(win);
-  void win.loadURL(initialUrl);
+  // The caller loads after attaching its feature handlers so an immediate
+  // offline failure cannot race past error handling.
+  void initialUrl;
   return win;
 }

@@ -5,6 +5,12 @@ import { showBlockedNavigation } from '../features/dialogs';
 
 type PopupOptions = () => Electron.BrowserWindowConstructorOptions;
 
+const MESSENGER_HOME = 'https://www.facebook.com/messages';
+
+function isObservedCallPlaceholder(url: string): boolean {
+  return url === 'nullblank' || url === 'about:blank';
+}
+
 function handleNavigation(
   rawUrl: string,
   cancel: () => void,
@@ -26,6 +32,11 @@ export function attachNavigationHandlers(
   popupOptions: PopupOptions,
 ): void {
   webContents.setWindowOpenHandler(({ url }) => {
+    // Meta first creates a placeholder popup and then navigates it to the
+    // allowlisted /groupcall/ROOM:... surface.
+    if (isObservedCallPlaceholder(url)) {
+      return { action: 'allow', overrideBrowserWindowOptions: popupOptions() };
+    }
     const decision = decide(url);
     if (decision.action === 'allow-in-app') {
       return { action: 'allow', overrideBrowserWindowOptions: popupOptions() };
@@ -39,6 +50,16 @@ export function attachNavigationHandlers(
   });
   webContents.on('will-redirect', (event, url) => {
     handleNavigation(url, () => event.preventDefault(), webContents);
+  });
+  webContents.on('did-navigate-in-page', (_event, url) => {
+    const decision = decide(url);
+    if (decision.action === 'allow-in-app') return;
+    if (decision.action === 'open-external') void openExternalUrl(url);
+    if (decision.action === 'block') {
+      const win = BrowserWindow.fromWebContents(webContents);
+      if (win) showBlockedNavigation(win, url, decision.reason);
+    }
+    void webContents.loadURL(MESSENGER_HOME);
   });
 
   ses.webRequest.onBeforeRequest(

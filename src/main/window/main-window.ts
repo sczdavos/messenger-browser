@@ -13,6 +13,7 @@ export function createMainWindow(): BrowserWindow {
   win.webContents.on('did-navigate', (_event, url) => {
     if (isInvalidSessionUrl(url)) win.show();
   });
+  void win.loadURL(MESSENGER_URL);
   win.setMinimumSize(800, 600);
   win.webContents.setZoomLevel(loadZoomLevel());
   const bounds = loadBounds();

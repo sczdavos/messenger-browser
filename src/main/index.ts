@@ -1,4 +1,5 @@
-import { app, type BrowserWindow } from 'electron';
+import { app, nativeImage, type BrowserWindow } from 'electron';
+import { resolve } from 'node:path';
 import { installApplicationMenu } from './features/menu';
 import { createMainWindow } from './window/main-window';
 import { flushBounds } from './window/bounds-store';
@@ -39,6 +40,14 @@ if (!hasLock) {
   });
 
   void app.whenReady().then(() => {
+    app.setName('MessengerBrowser');
+    if (process.platform === 'darwin' && app.dock) {
+      app.dock.setIcon(
+        nativeImage.createFromPath(
+          resolve('assets/MessengerBrowser-Icons/MessengerBrowser.icns'),
+        ),
+      );
+    }
     mainWindow = newMainWindow();
     installApplicationMenu(() => mainWindow);
   });

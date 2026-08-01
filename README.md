@@ -12,7 +12,8 @@ depends on Meta's web client remaining available.
 - The unread badge depends on a leading count in the document title. If Meta changes that title
   format, the badge silently disappears rather than inspecting page content.
 - Notifications are passed through from the site. MessengerBrowser does not read, filter, store,
-  or synthesize notification content.
+  or synthesize notification content. Electron 43 requires a code-signed macOS app for native
+  notifications; unsigned testing builds will not display them until signing is enabled.
 - Calls depend on macOS camera and microphone permissions and Meta's current call surface.
 
 ## Development

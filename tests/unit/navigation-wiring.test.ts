@@ -70,4 +70,11 @@ describe('navigation enforcement wiring', () => {
     expect(callback).toHaveBeenCalledWith({ cancel: true });
     expect(openExternal).toHaveBeenCalledWith('https://example.com/article');
   });
+
+  it("allows Meta's observed placeholder before the group-call popup navigates", () => {
+    const { webContents } = createHarness();
+    const handler = webContents.setWindowOpenHandler.mock
+      .calls[0]![0] as (details: { url: string }) => { action: string };
+    expect(handler({ url: 'nullblank' }).action).toBe('allow');
+  });
 });
