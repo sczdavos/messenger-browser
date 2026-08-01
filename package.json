@@ -1,0 +1,33 @@
+{
+  "name": "messenger-browser",
+  "productName": "MessengerBrowser",
+  "version": "0.1.0",
+  "description": "A hardened macOS wrapper for Facebook Messenger.",
+  "main": ".vite/build/main.js",
+  "author": "",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:integration": "playwright test"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.8.3",
+    "@electron-forge/maker-dmg": "^7.8.3",
+    "@electron-forge/plugin-vite": "^7.8.3",
+    "@playwright/test": "^1.55.0",
+    "@types/node": "^24.0.0",
+    "electron": "43.2.0",
+    "eslint": "^9.30.0",
+    "prettier": "^3.6.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.35.0",
+    "vitest": "^3.2.0"
+  }
+}

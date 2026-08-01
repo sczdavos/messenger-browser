@@ -57,7 +57,7 @@ constitution" is itself the finding.
 - [ ] T012 Complete S-8 checklist in `spike.md`; record GO / GO-WITH-AMENDMENTS / NO-GO decision and list every required constitution or spec amendment
 - [ ] T013 If S-5 or S-6 hit a STOP condition, halt and draft the specific amendment via `/speckit-constitution` or a spec update — do NOT widen an allowlist or relax a control to make the spike pass
 - [ ] T014 Merge all amendments arising from T012/T013 into `.specify/memory/constitution.md` and `spec.md` before proceeding
-- [ ] T015 Delete `spike/` entirely; confirm no spike code reaches `src/`
+- [X] T015 Delete `spike/` entirely; confirm no spike code reaches `src/`
 
 **🚧 GATE CHECKPOINT**: Phase 0 decision recorded and amendments merged. Only now may Phase 1 begin.
 
@@ -67,16 +67,16 @@ constitution" is itself the finding.
 
 **Purpose**: Project initialization. No application behaviour yet.
 
-- [ ] T016 Initialize npm project at repository root with `package.json`, pinning `electron@43.2.0` exactly (no caret), setting `productName` to `MessengerBrowser` and a bundle identifier derived from it (FR-041), and committing `package-lock.json`
-- [ ] T017 [P] Create `tsconfig.json` with `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`, and a `typecheck` script that fails the build on any error
-- [ ] T018 [P] Configure ESLint in `eslint.config.js` and Prettier in `.prettierrc` with a `lint` script
-- [ ] T019 Add ESLint security rules to `eslint.config.js`: `no-restricted-syntax` forbidding `new BrowserWindow(`, `new WebContentsView(`, `new BrowserView(` and the `webPreferences` identifier outside `src/main/security/remote-window-factory.ts` **and `tests/**`** (the test carve-out is required — without it this rule contradicts the T046 security-baseline suite); forbidding any `preload` key anywhere; forbidding `shell.openExternal` outside `src/main/security/external-open.ts`; forbidding `getLastWebPreferences` anywhere (undocumented API, Principle IX); forbidding literals `nodeIntegration: true`, `contextIsolation: false`, `sandbox: false`, `webSecurity: false`
-- [ ] T020 Add ESLint `no-restricted-imports` rules enforcing that `src/main/security/policy/*` tables are imported only by `src/main/security/policy/index.ts` and its tests, and that `permission-origins.ts` and `navigation-allowlist.ts` never import each other
-- [ ] T021 [P] Create `vitest.config.ts` for unit tests under `tests/unit/`
-- [ ] T022 [P] Create `playwright.config.ts` for Electron integration tests under `tests/integration/`
-- [ ] T023 [P] Create `.gitignore` at repository root covering `node_modules/`, `out/`, `dist/`, `.vite/`, and `.DS_Store`
-- [ ] T024 Create the source directory skeleton `src/main/{window,security/policy,session,features}`, `src/renderer-static/`, `tests/{unit/policy,integration}`, `build/`
-- [ ] T025 Create `forge.config.ts` skeleton with `@electron-forge/plugin-vite`, arm64-only packaging, `@electron-forge/maker-dmg`, `productName: 'MessengerBrowser'` (FR-041), and `LSMinimumSystemVersion` in the Info.plist configuration set to the macOS floor from FR-051 so the app cannot install on an unsupported release
+- [X] T016 Initialize npm project at repository root with `package.json`, pinning `electron@43.2.0` exactly (no caret), setting `productName` to `MessengerBrowser` and a bundle identifier derived from it (FR-041), and committing `package-lock.json`
+- [X] T017 [P] Create `tsconfig.json` with `strict: true`, `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`, and a `typecheck` script that fails the build on any error
+- [X] T018 [P] Configure ESLint in `eslint.config.js` and Prettier in `.prettierrc` with a `lint` script
+- [X] T019 Add ESLint security rules to `eslint.config.js`: `no-restricted-syntax` forbidding `new BrowserWindow(`, `new WebContentsView(`, `new BrowserView(` and the `webPreferences` identifier outside `src/main/security/remote-window-factory.ts` **and `tests/**`** (the test carve-out is required — without it this rule contradicts the T046 security-baseline suite); forbidding any `preload` key anywhere; forbidding `shell.openExternal` outside `src/main/security/external-open.ts`; forbidding `getLastWebPreferences` anywhere (undocumented API, Principle IX); forbidding literals `nodeIntegration: true`, `contextIsolation: false`, `sandbox: false`, `webSecurity: false`
+- [X] T020 Add ESLint `no-restricted-imports` rules enforcing that `src/main/security/policy/*` tables are imported only by `src/main/security/policy/index.ts` and its tests, and that `permission-origins.ts` and `navigation-allowlist.ts` never import each other
+- [X] T021 [P] Create `vitest.config.ts` for unit tests under `tests/unit/`
+- [X] T022 [P] Create `playwright.config.ts` for Electron integration tests under `tests/integration/`
+- [X] T023 [P] Create `.gitignore` at repository root covering `node_modules/`, `out/`, `dist/`, `.vite/`, and `.DS_Store`
+- [X] T024 Create the source directory skeleton `src/main/{window,security/policy,session,features}`, `src/renderer-static/`, `tests/{unit/policy,integration}`, `build/`
+- [X] T025 Create `forge.config.ts` skeleton with `@electron-forge/plugin-vite`, arm64-only packaging, `@electron-forge/maker-dmg`, `productName: 'MessengerBrowser'` (FR-041), and `LSMinimumSystemVersion` in the Info.plist configuration set to the macOS floor from FR-051 so the app cannot install on an unsupported release
 
 **Checkpoint**: `npm run typecheck` and `npm run lint` pass on an empty project.
 

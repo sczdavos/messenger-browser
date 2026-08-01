@@ -1,0 +1,7 @@
+.agents/
+.claude/
+.serena/
+.specify/
+specs/
+node_modules/
+.git/
