@@ -6,9 +6,10 @@ import { showBlockedNavigation } from '../features/dialogs';
 type PopupOptions = () => Electron.BrowserWindowConstructorOptions;
 
 const MESSENGER_HOME = 'https://www.facebook.com/messages';
+const navigationSessions = new WeakSet<Session>();
 
 function isObservedCallPlaceholder(url: string): boolean {
-  return url === 'nullblank' || url === 'about:blank';
+  return url === 'nullblank';
 }
 
 function handleNavigation(
@@ -62,6 +63,8 @@ export function attachNavigationHandlers(
     void webContents.loadURL(MESSENGER_HOME);
   });
 
+  if (navigationSessions.has(ses)) return;
+  navigationSessions.add(ses);
   ses.webRequest.onBeforeRequest(
     { urls: ['<all_urls>'], types: ['mainFrame'] },
     (details, callback) => {

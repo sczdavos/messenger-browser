@@ -77,4 +77,11 @@ describe('navigation enforcement wiring', () => {
       .calls[0]![0] as (details: { url: string }) => { action: string };
     expect(handler({ url: 'nullblank' }).action).toBe('allow');
   });
+
+  it('does not allow a generic blank popup', () => {
+    const { webContents } = createHarness();
+    const handler = webContents.setWindowOpenHandler.mock
+      .calls[0]![0] as (details: { url: string }) => { action: string };
+    expect(handler({ url: 'about:blank' }).action).toBe('deny');
+  });
 });

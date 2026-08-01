@@ -428,3 +428,11 @@ that unit tests cannot reach.
 - `- [ ]` tasks marked [P] touch different files with no interdependency.
 - Commit after each task or logical group.
 - Any allowlist change requires a constitution amendment merged **before** the code change.
+
+---
+
+## Phase 14: Convergence
+
+- [X] T109 [US3] Deduplicate the session-level `webRequest.onBeforeRequest` navigation handler so each remote session routes an external main-frame destination at most once across the main window and popups, per FR-008 and the four-layer navigation decision (partial)
+- [X] T110 [US1] Restrict the observed call-popup placeholder exception to the exact approved `nullblank` flow and reject generic `about:blank`, preserving the Constitution VII requirement that `about:` never satisfy the navigation allowlist (contradicts)
+- [X] T111 [US10] Replace the About message dialog with the specified native About window while retaining the product name, version, and non-affiliation disclaimer, per FR-043 and the plan’s About-window touchpoint (partial)

@@ -35,6 +35,30 @@ export function hardenedPopupOptions(): BrowserWindowConstructorOptions {
   return { webPreferences: HARDENED_REMOTE_WEB_PREFERENCES };
 }
 
+export function createAboutWindow(parent: BrowserWindow): BrowserWindow {
+  return new BrowserWindow({
+    width: 420,
+    height: 250,
+    minWidth: 420,
+    minHeight: 250,
+    maxWidth: 420,
+    maxHeight: 250,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    parent,
+    modal: true,
+    show: false,
+    title: 'About MessengerBrowser',
+    webPreferences: {
+      sandbox: true,
+      contextIsolation: true,
+      webSecurity: true,
+      nodeIntegration: false,
+    },
+  });
+}
+
 export function attachRemoteHandlers(win: BrowserWindow): void {
   const ses = messengerSession();
   attachPermissionHandlers(ses);
