@@ -151,10 +151,10 @@ navigation and permission policy being enforced.
 
 **Independent Test**: Sign in, quit fully, relaunch, confirm no sign-in prompt. Repeat after a system restart.
 
-- [ ] T054 [P] [US2] Write `tests/integration/session-persistence.test.ts` asserting a persisted partition survives an app restart and that no application-authored copy of session data exists on disk
-- [ ] T055 [US2] Verify `src/main/session/partition.ts` persists across restarts and that the application never reads, parses, copies, or exports the partition contents
-- [ ] T056 [US2] Implement invalid-session handling in `src/main/features/errors.ts` so a server-invalidated session presents the sign-in flow rather than an error or blank state
-- [ ] T057 [P] [US2] Write `tests/unit/settings-privacy.test.ts` asserting `settings.json` accepts only `schemaVersion`, `windowBounds`, and `zoomLevel` and rejects any other key
+- [X] T054 [P] [US2] Write `tests/integration/session-persistence.test.ts` asserting a persisted partition survives an app restart and that no application-authored copy of session data exists on disk
+- [X] T055 [US2] Verify `src/main/session/partition.ts` persists across restarts and that the application never reads, parses, copies, or exports the partition contents
+- [X] T056 [US2] Implement invalid-session handling in `src/main/features/errors.ts` so a server-invalidated session presents the sign-in flow rather than an error or blank state
+- [X] T057 [P] [US2] Write `tests/unit/settings-privacy.test.ts` asserting `settings.json` accepts only `schemaVersion`, `windowBounds`, and `zoomLevel` and rejects any other key
 
 **Checkpoint**: Session persists across quit, relaunch, and reboot.
 

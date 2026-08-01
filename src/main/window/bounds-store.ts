@@ -1,26 +1,14 @@
 import { app, screen, type Rectangle } from 'electron';
 import { join } from 'node:path';
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { parseSettings, type AppSettings } from '../session/settings';
 
 const MIN_WIDTH = 800;
 const MIN_HEIGHT = 600;
 const FILE_NAME = 'settings.json';
 
-interface SettingsFile {
-  readonly schemaVersion: 1;
-  readonly windowBounds?: Rectangle;
-}
-
 function settingsPath(): string {
   return join(app.getPath('userData'), FILE_NAME);
-}
-
-function validBounds(value: unknown): value is Rectangle {
-  if (!value || typeof value !== 'object') return false;
-  const bounds = value as Partial<Rectangle>;
-  return [bounds.x, bounds.y, bounds.width, bounds.height].every(
-    (item) => typeof item === 'number' && Number.isFinite(item),
-  );
 }
 
 function clampToDisplays(bounds: Rectangle): Rectangle {
@@ -50,10 +38,10 @@ function clampToDisplays(bounds: Rectangle): Rectangle {
 export function loadBounds(): Rectangle | undefined {
   if (!existsSync(settingsPath())) return undefined;
   try {
-    const parsed = JSON.parse(
-      readFileSync(settingsPath(), 'utf8'),
-    ) as Partial<SettingsFile>;
-    return validBounds(parsed.windowBounds)
+    const parsed = parseSettings(
+      JSON.parse(readFileSync(settingsPath(), 'utf8')),
+    );
+    return parsed?.windowBounds
       ? clampToDisplays(parsed.windowBounds)
       : undefined;
   } catch {
@@ -68,7 +56,7 @@ export function saveBounds(bounds: Rectangle): void {
   saveTimer = setTimeout(() => {
     const path = settingsPath();
     const tempPath = `${path}.tmp`;
-    const data: SettingsFile = {
+    const data: AppSettings = {
       schemaVersion: 1,
       windowBounds: clampToDisplays(bounds),
     };
