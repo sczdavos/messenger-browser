@@ -82,7 +82,7 @@ future/optional work for this testing phase.
 
 ## License
 
-This project is currently private and unlicensed (`UNLICENSED`).
+This repository is public, but no open-source license is currently granted (`UNLICENSED`).
 
 ## Disclaimer
 
