@@ -25,7 +25,20 @@ MessengerBrowser to Applications.
 The current testing builds are intentionally unsigned. On first launch, macOS may require
 Control-clicking the application, choosing **Open**, and confirming **Open** in the warning dialog.
 These builds are for a small testing group and require an Apple Silicon Mac running macOS 15 or
-newer.
+newer. Download only from the official GitHub Release and, when desired, verify the published
+SHA-256 checksum before opening it.
+
+If macOS reports that the application is “damaged” after downloading, this is the quarantine warning
+for the unsigned app rather than a corrupt DMG. After copying MessengerBrowser to Applications,
+remove the quarantine attribute and launch it:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/MessengerBrowser.app
+open /Applications/MessengerBrowser.app
+```
+
+Only do this for a DMG downloaded from the project’s official Release and verified against its
+published checksum.
 
 ## Development
 
