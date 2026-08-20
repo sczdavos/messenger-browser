@@ -5,6 +5,7 @@ import type {
   Session,
 } from 'electron';
 import { evaluatePermission } from './permissions-policy';
+import { trace } from './nav-trace';
 import { normalizeOrigin } from './policy/normalize-origin';
 
 function requestOrigin(
@@ -36,8 +37,15 @@ function checkPermission(
 
 export function attachPermissionHandlers(ses: Session): void {
   ses.setPermissionCheckHandler(
-    (_webContents, permission, requestingOrigin, details) =>
-      checkPermission(permission, requestingOrigin, details),
+    (_webContents, permission, requestingOrigin, details) => {
+      const granted = checkPermission(permission, requestingOrigin, details);
+      trace(
+        'permission-check',
+        granted ? 'granted' : 'denied',
+        `${permission} @ ${requestingOrigin}`,
+      );
+      return granted;
+    },
   );
 
   ses.setPermissionRequestHandler(
@@ -51,6 +59,11 @@ export function attachPermissionHandlers(ses: Session): void {
         requestingOrigin,
         ...(mediaTypes === undefined ? {} : { mediaTypes }),
       }).granted;
+      trace(
+        'permission-request',
+        grantedByPolicy ? 'granted' : 'denied',
+        `${permission} @ ${requestingOrigin}`,
+      );
       if (!grantedByPolicy || permission !== 'media') {
         callback(grantedByPolicy);
         return;
@@ -78,6 +91,9 @@ export function attachPermissionHandlers(ses: Session): void {
     },
   );
 
-  ses.setDevicePermissionHandler(() => false);
+  ses.setDevicePermissionHandler((details) => {
+    trace('device-permission', 'denied', details.deviceType);
+    return false;
+  });
   ses.setDisplayMediaRequestHandler((_request, callback) => callback({}));
 }

@@ -145,6 +145,30 @@ All delegate to `decide()`.
 main-frame navigations; browser-initiated navigations bypass it entirely. `will-redirect` has no such
 restriction. Layer 4 nets what layer 2 structurally cannot see. See research R-004.
 
+### The inert blank document
+
+`decide()` keeps its `about:blank -> block: unsafe-scheme` verdict (see section 6), but every
+enforcement layer tolerates a blank document before consulting it. Meta stages both its group-call
+popup and its passkey/WebAuthn bridge as an empty document, and the bridge signals through the
+fragment -- the observed value is `about:blank#g`, so the match is on `protocol === 'about:'` **and**
+`pathname === 'blank'`, with any query or fragment allowed. A blank document has no content and no
+origin, and whatever it navigates to next passes back through these same layers, so the tolerance
+grants nothing. It lives in the wiring layer (`src/main/security/navigation.ts`), never in the policy
+tables.
+
+### `did-navigate-in-page` recovery
+
+Same-document navigations never reach layers 2-4, so a fifth handler re-checks them and pulls an
+off-policy main frame back to `MESSENGER_HOME`. It applies **only** to the main frame: an in-page
+navigation inside a subframe is ignored, because tearing down the surrounding page over an embedded
+frame's hash change breaks the login and call flows that depend on such frames.
+
+### Tracing
+
+Set `MESSENGER_BROWSER_TRACE_NAV=1` to have every layer log `url` and decision to stderr
+(`src/main/security/nav-trace.ts`), including permission checks. The blocked-navigation dialog
+summarises a URL to origin + path, which is not enough to diagnose a flow; the trace is.
+
 ### ⚠️ Layer 4 filter — exact shape, and why it matters
 
 The `WebRequestFilter` structure has exactly three fields: **`urls` (required)**, `excludeUrls`

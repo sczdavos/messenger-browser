@@ -42,18 +42,34 @@ export async function ensureMediaAccess(
   return true;
 }
 
+const MAX_DETAIL_URL_LENGTH = 120;
+
+export function formatBlockedDetail(rawUrl: string, reason: string): string {
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    // Keep the policy reason without echoing malformed input into the dialog.
+    return reason;
+  }
+  // Opaque-origin schemes (about:, data:, blob: without a host) serialise
+  // `origin` to the string "null", which used to render `about:blank` as the
+  // meaningless "nullblank". Show the URL itself for those.
+  const target =
+    url.origin === 'null' ? url.href : `${url.origin}${url.pathname}`;
+  const shown =
+    target.length > MAX_DETAIL_URL_LENGTH
+      ? `${target.slice(0, MAX_DETAIL_URL_LENGTH)}…`
+      : target;
+  return `${shown} (${reason})`;
+}
+
 export function showBlockedNavigation(
   win: BrowserWindow,
   rawUrl: string,
   reason: string,
 ): void {
-  let detail = reason;
-  try {
-    const url = new URL(rawUrl);
-    detail = `${url.origin}${url.pathname} (${reason})`;
-  } catch {
-    // Keep the policy reason without echoing malformed input into the dialog.
-  }
+  const detail = formatBlockedDetail(rawUrl, reason);
   void dialog.showMessageBox(win, {
     type: 'warning',
     title: 'Navigation blocked',
